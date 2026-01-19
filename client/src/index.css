@@ -18,8 +18,8 @@
   --popover: oklch(1.0000 0 0);
   --popover-foreground: oklch(0.3729 0.0306 259.7328);
   
-  /* Primary - Green/Teal */
-  --primary: oklch(0.7227 0.1920 149.5793);
+  /* Primary - Green/Teal (Darkened 10% for better contrast) */
+  --primary: oklch(0.6504 0.1920 149.5793);
   --primary-foreground: oklch(1.0000 0 0);
   
   /* Secondary - Light Purple/Blue */
@@ -41,10 +41,10 @@
   /* Border & Input */
   --border: oklch(0.9276 0.0058 264.5313);
   --input: oklch(0.9276 0.0058 264.5313);
-  --ring: oklch(0.7227 0.1920 149.5793);
+  --ring: oklch(0.6504 0.1920 149.5793);
   
   /* Chart Colors */
-  --chart-1: oklch(0.7227 0.1920 149.5793);
+  --chart-1: oklch(0.6504 0.1920 149.5793);
   --chart-2: oklch(0.6959 0.1491 162.4796);
   --chart-3: oklch(0.5960 0.1274 163.2254);
   --chart-4: oklch(0.5081 0.1049 165.6121);
@@ -53,12 +53,12 @@
   /* Sidebar */
   --sidebar: oklch(0.9514 0.0250 236.8242);
   --sidebar-foreground: oklch(0.3729 0.0306 259.7328);
-  --sidebar-primary: oklch(0.7227 0.1920 149.5793);
+  --sidebar-primary: oklch(0.6504 0.1920 149.5793);
   --sidebar-primary-foreground: oklch(1.0000 0 0);
   --sidebar-accent: oklch(0.9505 0.0507 163.0508);
   --sidebar-accent-foreground: oklch(0.3729 0.0306 259.7328);
   --sidebar-border: oklch(0.9276 0.0058 264.5313);
-  --sidebar-ring: oklch(0.7227 0.1920 149.5793);
+  --sidebar-ring: oklch(0.6504 0.1920 149.5793);
 
   /* Font Families */
   --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -123,7 +123,7 @@
   /* Chart Colors */
   --chart-1: oklch(0.7729 0.1535 163.2231);
   --chart-2: oklch(0.7845 0.1325 181.9120);
-  --chart-3: oklch(0.7227 0.1920 149.5793);
+  --chart-3: oklch(0.6504 0.1920 149.5793);
   --chart-4: oklch(0.6959 0.1491 162.4796);
   --chart-5: oklch(0.5960 0.1274 163.2254);
   
