@@ -140,27 +140,60 @@ const extractLocation = (input: string): LocationInfo => {
 
 const extractUpcomingTrips = (input: string): Trip[] => {
   const trips: Trip[] = [];
-  const locationPattern = /(?:to|in|visiting)\s+([A-Z][a-zA-Z\s]+?)(?:\s+(?:for|in|during|sometime))/gi;
   
-  let match;
-  while ((match = locationPattern.exec(input)) !== null) {
-    let purpose: Trip['purpose'] = 'vacation';
-    if (input.match(/business/i)) purpose = 'business';
-    if (input.match(/family/i)) purpose = 'family';
+  // Clean input
+  const cleanInput = input.replace(/\b(and|then|also)\b/gi, '.');
+  const sentences = cleanInput.split(/[.!?]+/).filter(s => s.trim().length > 0);
 
-    let timeframe = 'Next year';
-    if (input.match(/summer/i)) timeframe = 'Summer';
-    if (input.match(/winter/i)) timeframe = 'Winter';
-    const monthMatch = input.match(/(?:january|february|march|april|may|june|july|august|september|october|november|december)/i);
-    if (monthMatch) timeframe = monthMatch[0];
+  sentences.forEach(sentence => {
+     // 1. Extract Destination
+     // Look for "to [Location]", "visit [Location]", or just Capitalized words that aren't months/keywords
+     // Exclude common keywords to avoid false positives
+     const destPattern = /(?:going to|visit|visiting|trip to|in)\s+([A-Z][a-zA-Z\s]+)|(?<!^)\b([A-Z][a-zA-Z]+)\b/g;
+     
+     const excludeWords = new Set(['Summer', 'Winter', 'Spring', 'Fall', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Me', 'My', 'Our', 'We', 'I', 'The', 'A', 'An', 'Next', 'Year', 'Month', 'Week']);
+     
+     const potentialDestinations = [];
+     let match;
+     while ((match = destPattern.exec(sentence)) !== null) {
+        const word = (match[1] || match[2]).trim();
+        if (!excludeWords.has(word) && word.length > 2) {
+           potentialDestinations.push(word);
+        }
+     }
 
-    trips.push({
-      destination: match[1].trim(),
-      timeframe: { type: 'approximate', description: timeframe },
-      purpose,
-      notes: ''
-    });
-  }
+     if (potentialDestinations.length === 0) return;
+
+     // 2. Extract Timeframe from the same sentence
+     let timeframe = 'Unspecified';
+     if (sentence.match(/summer/i)) timeframe = 'Summer';
+     else if (sentence.match(/winter/i)) timeframe = 'Winter';
+     else if (sentence.match(/spring/i)) timeframe = 'Spring';
+     else if (sentence.match(/fall|autumn/i)) timeframe = 'Fall';
+     else if (sentence.match(/next year/i)) timeframe = 'Next Year';
+     else {
+        const monthMatch = sentence.match(/(?:january|february|march|april|may|june|july|august|september|october|november|december)/i);
+        if (monthMatch) timeframe = monthMatch[0];
+     }
+
+     // 3. Extract Purpose
+     let purpose: Trip['purpose'] = 'vacation';
+     if (sentence.match(/business|work|conference/i)) purpose = 'business';
+     else if (sentence.match(/family|reunion|visit family/i)) purpose = 'family';
+     else if (sentence.match(/vacation|holiday|leisure/i)) purpose = 'vacation';
+     else if (sentence.match(/wedding|honeymoon/i)) purpose = 'other';
+
+     // Add a trip for each destination found in this context
+     potentialDestinations.forEach(dest => {
+         trips.push({
+             destination: dest,
+             timeframe: { type: 'approximate', description: timeframe },
+             purpose,
+             notes: ''
+         });
+     });
+  });
+
   return trips;
 };
 
