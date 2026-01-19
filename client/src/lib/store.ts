@@ -29,7 +29,7 @@ export interface LocationInfo {
 
 export interface Trip {
   destination: string;
-  timeframe: { type: string; description: string };
+  timeframe: { type: string; description: string; startDate?: string; endDate?: string };
   purpose: 'vacation' | 'business' | 'family' | 'other';
   notes: string;
 }
