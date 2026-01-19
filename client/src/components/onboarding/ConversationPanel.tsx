@@ -157,14 +157,62 @@ export function ConversationPanel() {
               disabled={isLoading}
               autoFocus
             />
-            <Button 
-              type="submit" 
-              size="icon" 
-              className="absolute right-2 top-2 h-10 w-10 rounded-full bg-primary hover:bg-primary/90 transition-all shadow-md"
-              disabled={!inputValue.trim() || isLoading}
-            >
-              <Send className="w-4 h-4" />
-            </Button>
+            
+            <div className="absolute right-2 top-2 flex gap-1">
+                <Button 
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 px-3 rounded-full text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                    onClick={() => {
+                        // Skip Logic
+                        const nextStep = currentStep + 1;
+                        // Add user skip message
+                        addMessage({ role: 'user', content: "Skip and fill out later" });
+                        
+                        // Clear confirmation if pending
+                        if (isAwaitingConfirmation) {
+                            setAwaitingConfirmation(false);
+                        }
+
+                        if (nextStep < ONBOARDING_QUESTIONS.length) {
+                            setStep(nextStep);
+                            // Simulate AI delay for natural feel
+                            setLoading(true);
+                            setTimeout(() => {
+                                addMessage({ 
+                                    role: 'assistant', 
+                                    content: `No problem, we can come back to that. ${ONBOARDING_QUESTIONS[nextStep].prompt}`, 
+                                    type: 'text' 
+                                });
+                                setLoading(false);
+                            }, 600);
+                        } else {
+                            // Completion
+                            setLoading(true);
+                            setTimeout(() => {
+                                addMessage({ 
+                                    role: 'assistant', 
+                                    content: "Alright! That covers the basics for now. You can fill in the rest of the details in your profile whenever you're ready.", 
+                                    type: 'completion' 
+                                });
+                                setLoading(false);
+                            }, 600);
+                        }
+                    }}
+                    disabled={isLoading}
+                >
+                    Skip
+                </Button>
+                <Button 
+                type="submit" 
+                size="icon" 
+                className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 transition-all shadow-md"
+                disabled={!inputValue.trim() || isLoading}
+                >
+                <Send className="w-4 h-4" />
+                </Button>
+            </div>
           </form>
           <div className="text-center mt-2">
             <span className="text-[10px] text-muted-foreground">

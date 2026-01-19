@@ -35,7 +35,7 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Step 1: Contact Info */}
-        {(profile.contactInfo || currentStep === 0) && (
+        {(currentStep >= 0) && (
           <ExtractedDataCard 
             title="Contact Information" 
             icon={<User className="w-4 h-4" />}
@@ -60,7 +60,7 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
         )}
 
         {/* Step 2: Travel Group */}
-        {(profile.travelGroup || currentStep === 1) && (
+        {(currentStep >= 1) && (
            <ExtractedDataCard 
              title="Travel Group" 
              icon={<Users className="w-4 h-4" />}
@@ -98,11 +98,16 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
                   )}
                 </div>
              ))}
+             {(!profile.travelGroup?.members.length) && (
+                <div className="text-xs text-muted-foreground italic p-2">
+                    No members added. <Button variant="link" size="sm" className="h-auto p-0 text-primary" onClick={() => updateSection('travelGroup', { type: 'solo', members: [{ name: 'Me', age: 30, isMinor: false }] })}>Add Self</Button>
+                </div>
+             )}
            </ExtractedDataCard>
         )}
 
         {/* Step 3: Location */}
-        {(profile.location || currentStep === 2) && (
+        {(currentStep >= 2) && (
           <ExtractedDataCard 
             title="Location & Terminals" 
             icon={<MapPin className="w-4 h-4" />}
@@ -124,7 +129,7 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
         )}
 
         {/* Step 4: Upcoming Trips */}
-        {(profile.upcomingTrips || currentStep === 3) && (
+        {(currentStep >= 3) && (
            <ExtractedDataCard 
              title="Upcoming Trips" 
              icon={<Calendar className="w-4 h-4" />}
@@ -139,14 +144,17 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
                    </div>
                 </div>
               ))}
-              <Button variant="outline" size="sm" className="w-full border-dashed text-muted-foreground">
+              <Button variant="outline" size="sm" className="w-full border-dashed text-muted-foreground" onClick={() => {
+                  const newTrips = [...(profile.upcomingTrips || []), { destination: 'New Trip', timeframe: { type: 'approximate', description: 'TBD' }, purpose: 'vacation', notes: '' }];
+                  updateSection('upcomingTrips', newTrips);
+              }}>
                 <Plus className="w-3 h-3 mr-2" /> Add Trip
               </Button>
            </ExtractedDataCard>
         )}
 
         {/* Step 5: Past Trips (Last Trip) */}
-        {(profile.pastTrips || currentStep === 4) && (
+        {(currentStep >= 4) && (
            <ExtractedDataCard 
              title="Last Trip Experience" 
              icon={<Map className="w-4 h-4" />}
@@ -166,7 +174,7 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
         )}
 
         {/* Step 6: Budget */}
-        {(profile.budgetPreferences || currentStep === 5) && (
+        {(currentStep >= 5) && (
            <ExtractedDataCard 
              title="Budget & Priorities" 
              icon={<DollarSign className="w-4 h-4" />}
@@ -189,6 +197,7 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
                        </Badge>
                     </div>
                  ))}
+                 {!profile.budgetPreferences && <span className="text-xs text-muted-foreground italic">No budget set</span>}
               </div>
            </ExtractedDataCard>
         )}
