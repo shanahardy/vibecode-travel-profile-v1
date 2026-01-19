@@ -9,10 +9,13 @@ import {
   Hotel, 
   ArrowRight,
   MoreVertical,
-  Clock
+  Clock,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { useProfileStore } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
+import { checkSchoolConflict } from '@/lib/school-calendar';
 import {
   Card,
   CardContent,
@@ -27,9 +30,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from 'react';
 
 export default function PlanTrip() {
   const { profile } = useProfileStore();
+  const [dismissedWarnings, setDismissedWarnings] = useState<number[]>([]);
+
+  const hasMinors = profile.travelGroup?.members.some(m => m.isMinor);
 
   return (
     <AppLayout>
@@ -74,56 +81,74 @@ export default function PlanTrip() {
                     </Card>
                 ) : (
                     <div className="space-y-4">
-                        {profile.upcomingTrips.map((trip, idx) => (
-                            <Card key={idx} className="group hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-primary/0 hover:border-l-primary">
-                                <CardHeader className="flex flex-row items-start justify-between pb-2">
-                                    <div>
-                                        <CardTitle className="text-xl flex items-center gap-2">
-                                            {trip.destination}
-                                        </CardTitle>
-                                        <CardDescription className="flex items-center gap-2 mt-1">
-                                            <Badge variant="secondary" className="font-normal capitalize">
-                                                {trip.purpose}
-                                            </Badge>
-                                            <span className="text-xs">•</span>
-                                            <span className="flex items-center gap-1 text-xs">
-                                                <Clock className="w-3 h-3" />
-                                                {trip.timeframe.description}
+                        {profile.upcomingTrips.map((trip, idx) => {
+                            const isSchoolConflict = hasMinors && checkSchoolConflict(trip.timeframe.description) && !dismissedWarnings.includes(idx);
+                            
+                            return (
+                                <Card key={idx} className="group hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-primary/0 hover:border-l-primary relative overflow-hidden">
+                                    {isSchoolConflict && (
+                                        <div className="bg-amber-100 text-amber-800 text-xs px-4 py-2 flex items-center justify-between border-b border-amber-200">
+                                            <span className="flex items-center gap-2 font-medium">
+                                                <AlertTriangle className="w-3 h-3" />
+                                                Warning: This trip date overlaps with school session.
                                             </span>
-                                        </CardDescription>
-                                    </div>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <MoreVertical className="w-4 h-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                                            <DropdownMenuItem>View Itinerary</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex gap-4 mt-2">
-                                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-md">
-                                            <Plane className="w-4 h-4" />
-                                            <span>Flights TBD</span>
+                                            <button onClick={(e) => {
+                                                e.stopPropagation();
+                                                setDismissedWarnings([...dismissedWarnings, idx]);
+                                            }} className="hover:bg-amber-200 rounded p-0.5">
+                                                <X className="w-3 h-3" />
+                                            </button>
                                         </div>
-                                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-md">
-                                            <Hotel className="w-4 h-4" />
-                                            <span>Lodging TBD</span>
+                                    )}
+                                    <CardHeader className="flex flex-row items-start justify-between pb-2">
+                                        <div>
+                                            <CardTitle className="text-xl flex items-center gap-2">
+                                                {trip.destination}
+                                            </CardTitle>
+                                            <CardDescription className="flex items-center gap-2 mt-1">
+                                                <Badge variant="secondary" className="font-normal capitalize">
+                                                    {trip.purpose}
+                                                </Badge>
+                                                <span className="text-xs">•</span>
+                                                <span className="flex items-center gap-1 text-xs">
+                                                    <Clock className="w-3 h-3" />
+                                                    {trip.timeframe.description}
+                                                </span>
+                                            </CardDescription>
                                         </div>
-                                    </div>
-                                </CardContent>
-                                <CardFooter className="pt-2 border-t bg-muted/5">
-                                    <Button variant="ghost" size="sm" className="ml-auto text-primary hover:text-primary hover:bg-primary/10 group-hover:pr-2 transition-all">
-                                        Continue Planning <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-                        ))}
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <MoreVertical className="w-4 h-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem>Edit Details</DropdownMenuItem>
+                                                <DropdownMenuItem>View Itinerary</DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex gap-4 mt-2">
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-md">
+                                                <Plane className="w-4 h-4" />
+                                                <span>Flights TBD</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-md">
+                                                <Hotel className="w-4 h-4" />
+                                                <span>Lodging TBD</span>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="pt-2 border-t bg-muted/5">
+                                        <Button variant="ghost" size="sm" className="ml-auto text-primary hover:text-primary hover:bg-primary/10 group-hover:pr-2 transition-all">
+                                            Continue Planning <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
             </div>
