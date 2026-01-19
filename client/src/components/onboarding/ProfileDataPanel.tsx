@@ -100,9 +100,15 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
              ))}
              {(!profile.travelGroup?.members.length) && (
                 <div className="text-xs text-muted-foreground italic p-2">
-                    No members added. <Button variant="link" size="sm" className="h-auto p-0 text-primary" onClick={() => updateSection('travelGroup', { type: 'solo', members: [{ name: 'Me', age: 30, isMinor: false }] })}>Add Self</Button>
+                    No members added. 
                 </div>
              )}
+             <Button variant="outline" size="sm" className="w-full border-dashed text-muted-foreground mt-2" onClick={() => {
+                const newMembers = [...(profile.travelGroup?.members || []), { name: 'New Member', age: 30, isMinor: false }];
+                updateSection('travelGroup', { ...(profile.travelGroup || { type: 'group' }), members: newMembers });
+             }}>
+                <Plus className="w-3 h-3 mr-2" /> Add Member
+             </Button>
            </ExtractedDataCard>
         )}
 
@@ -118,11 +124,30 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
             <EditableField label="Zip" value={profile.location?.zipCode || ''} onSave={(val) => updateSection('location', { ...profile.location, zipCode: val })} />
             <div className="mt-2">
                <label className="text-xs text-muted-foreground font-medium">Preferred Airports</label>
-               <div className="flex flex-wrap gap-1 mt-1">
-                 {profile.location?.preferredAirports.map(code => (
-                    <Badge key={code} variant="outline" className="font-mono">{code}</Badge>
+               <div className="flex flex-wrap gap-1 mt-1 mb-2">
+                 {profile.location?.preferredAirports.map((code, idx) => (
+                    <Badge key={idx} variant="outline" className="font-mono flex items-center gap-1">
+                        {code}
+                        <Trash2 className="w-3 h-3 cursor-pointer hover:text-destructive" onClick={() => {
+                            const newAirports = profile.location?.preferredAirports.filter((_, i) => i !== idx) || [];
+                            updateSection('location', { ...profile.location, preferredAirports: newAirports });
+                        }} />
+                    </Badge>
                  ))}
                  {(!profile.location?.preferredAirports.length) && <span className="text-xs text-muted-foreground italic">None</span>}
+               </div>
+               <div className="flex gap-1">
+                   <EditableField 
+                     label="" 
+                     value="" 
+                     placeholder="Add Airport (e.g. SFO)" 
+                     onSave={(val) => {
+                        if (val && val.length >= 3) {
+                            const newAirports = [...(profile.location?.preferredAirports || []), val.toUpperCase()];
+                            updateSection('location', { ...profile.location, preferredAirports: newAirports });
+                        }
+                     }} 
+                   />
                </div>
             </div>
           </ExtractedDataCard>
