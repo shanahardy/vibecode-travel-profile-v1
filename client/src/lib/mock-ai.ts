@@ -75,21 +75,43 @@ const extractContactInfo = (input: string): ContactInfo => {
 
 const extractTravelGroup = (input: string): TravelGroup => {
   const members: any[] = [];
-  const agePattern = /(\w+)\s+(?:is|who is)\s+(\d+)/gi;
-  let match;
   
-  while ((match = agePattern.exec(input)) !== null) {
-    members.push({
-      name: match[1],
-      age: parseInt(match[2]),
-      isMinor: parseInt(match[2]) < 18
-    });
+  // 1. Check for self ("me", "myself", "I")
+  // Default to adult if no age specified for self, or try to find age near "me"
+  if (input.match(/\b(me|myself|i)\b/i)) {
+      // Look for age near "me" like "Me (30)" or "I am 30"
+      const selfAgeMatch = input.match(/\b(me|myself|i)\b.*?(?:is|am)?\s*(\d{1,2})/i);
+      members.push({
+          name: 'Me',
+          age: selfAgeMatch ? parseInt(selfAgeMatch[2]) : 30, // Default to 30 if not specified
+          isMinor: false
+      });
   }
 
-  // Determine type
+  // 2. Extract other members: "Name is Age", "Name (Age)", "Name, Age"
+  // Regex explains:
+  // ([A-Z][a-z]+) -> Name (Title case)
+  // \s* -> whitespace
+  // (?:is|who is|,|\(?)\s* -> Separator: "is", "who is", ",", "("
+  // (\d{1,2}) -> Age (1-2 digits)
+  const memberPattern = /([A-Z][a-z]+)\s*(?:is|who is|,|\()\s*(\d{1,2})/g;
+  let match;
+  
+  while ((match = memberPattern.exec(input)) !== null) {
+    // Avoid capturing "Me" again if capitalized
+    if (match[1].toLowerCase() !== 'me') {
+        members.push({
+        name: match[1],
+        age: parseInt(match[2]),
+        isMinor: parseInt(match[2]) < 18
+        });
+    }
+  }
+
+  // Determine type based on count
   let type: TravelGroup['type'] = 'group';
-  if (input.match(/just me|myself|solo/i)) type = 'solo';
-  else if (input.match(/wife|husband|partner/i) && members.length <= 2) type = 'partner';
+  if (members.length === 1) type = 'solo';
+  else if (members.length === 2 && input.match(/wife|husband|partner/i)) type = 'partner';
   else if (input.match(/family|kids|children/i)) type = 'family';
 
   return { type, members };
