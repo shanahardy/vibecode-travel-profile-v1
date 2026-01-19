@@ -17,7 +17,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground hidden md:flex flex-col">
         <div className="p-6">
-          <h1 className="text-2xl font-serif font-bold tracking-tight text-emerald-800 flex items-center gap-2">
+          <h1 className="text-2xl font-serif font-bold tracking-tight text-primary flex items-center gap-2">
             <span className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
               <Compass className="w-5 h-5" />
             </span>
