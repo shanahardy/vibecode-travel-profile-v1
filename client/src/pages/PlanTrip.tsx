@@ -12,7 +12,8 @@ import {
   Clock,
   AlertTriangle,
   X,
-  CalendarDays
+  CalendarDays,
+  MessageSquareText
 } from 'lucide-react';
 import { useProfileStore } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
@@ -36,14 +37,24 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from 'react';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { PlannerChat } from '@/components/planner/PlannerChat';
 
 export default function PlanTrip() {
   const { profile, updateSection } = useProfileStore();
   const [dismissedWarnings, setDismissedWarnings] = useState<number[]>([]);
+  const [activePlannerTrip, setActivePlannerTrip] = useState<number | null>(null);
 
   const hasMinors = profile.travelGroup?.members.some(m => m.isMinor);
 
@@ -146,18 +157,37 @@ export default function PlanTrip() {
                                                 </span>
                                             </CardDescription>
                                         </div>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <MoreVertical className="w-4 h-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                                                <DropdownMenuItem>View Itinerary</DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <div className="flex gap-1">
+                                            <Sheet>
+                                                <SheetTrigger asChild>
+                                                    <Button variant="outline" size="sm" className="h-8 gap-2 text-primary border-primary/20 hover:bg-primary/5" onClick={() => setActivePlannerTrip(idx)}>
+                                                        <MessageSquareText className="w-4 h-4" />
+                                                        Plan
+                                                    </Button>
+                                                </SheetTrigger>
+                                                <SheetContent className="sm:max-w-md w-full p-0 flex flex-col">
+                                                    <SheetHeader className="px-4 py-3 border-b">
+                                                        <SheetTitle>Trip Planner</SheetTitle>
+                                                        <SheetDescription>AI assistant for {trip.destination}</SheetDescription>
+                                                    </SheetHeader>
+                                                    <div className="flex-1 overflow-hidden">
+                                                        <PlannerChat tripIndex={idx} />
+                                                    </div>
+                                                </SheetContent>
+                                            </Sheet>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreVertical className="w-4 h-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem>Edit Details</DropdownMenuItem>
+                                                    <DropdownMenuItem>View Itinerary</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {/* Date Pickers */}

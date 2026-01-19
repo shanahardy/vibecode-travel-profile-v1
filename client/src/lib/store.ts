@@ -32,6 +32,7 @@ export interface Trip {
   timeframe: { type: string; description: string; startDate?: string; endDate?: string };
   purpose: 'vacation' | 'business' | 'family' | 'other';
   notes: string;
+  plannerMessages?: Message[];
 }
 
 export interface PastTrip {
