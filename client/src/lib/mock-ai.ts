@@ -25,7 +25,8 @@ export const detectDoneSignal = (input: string): boolean => {
 const extractContactInfo = (input: string): ContactInfo => {
   const emailRegex = /[\w.-]+@[\w.-]+\.\w+/;
   const phoneRegex = /(\d{3}[-.\s]??\d{3}[-.\s]??\d{4}|\(\d{3}\)\s*\d{3}[-.\s]??\d{4})/;
-  const dateRegex = /(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{4}/i;
+  // Supports: Jan 15 1985, 15 Jan 1985, 01/15/1985
+  const dateRegex = /(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2},?\s+\d{4}|\d{1,2}\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[a-z]*\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{4}/i;
   
   return {
     email: input.match(emailRegex)?.[0] || '',
@@ -57,7 +58,8 @@ const extractTravelGroup = (input: string): TravelGroup => {
 };
 
 const extractLocation = (input: string): LocationInfo => {
-  const cityStatePattern = /([A-Z][a-zA-Z\s]+),\s*([A-Z]{2})/;
+  // Supports: Portland, OR; Portland OR; Portland, Oregon
+  const cityStatePattern = /([A-Z][a-zA-Z\s]+)(?:,\s*|\s+)([A-Z]{2}|[A-Z][a-z]+)/;
   const zipPattern = /\b\d{5}\b/;
   const airportCodes = input.match(/\b[A-Z]{3}\b/g) || [];
   
@@ -181,12 +183,9 @@ export async function handleOnboardingStep(
           type: 'completion'
         };
       }
-    } else {
-       return {
-         text: "No problem! Please provide the correct information.",
-         type: 'followup' // Keep them on the same step
-       };
     }
+    // If it's not a confirmation (e.g. "No", "Actually...", or corrections), 
+    // we fall through to the extraction logic to re-process the input as a correction.
   }
 
   // 2. Extract Data based on Step
@@ -196,26 +195,53 @@ export async function handleOnboardingStep(
   switch (question.id) {
     case 'contactInfo': {
       const info = extractContactInfo(userMessage);
-      extractedData = { contactInfo: info, name: profile.name || info.email.split('@')[0] }; // Fallback name
-      confirmationText = `I've got the following:\n- Email: ${info.email}\n- Phone: ${info.phone}\n- DOB: ${info.dateOfBirth}\n\nIs that correct?`;
+      // Merge with existing profile data to allow partial corrections
+      const mergedInfo = {
+        email: info.email || profile.contactInfo?.email || '',
+        phone: info.phone || profile.contactInfo?.phone || '',
+        dateOfBirth: info.dateOfBirth || profile.contactInfo?.dateOfBirth || ''
+      };
+      
+      extractedData = { contactInfo: mergedInfo, name: profile.name || mergedInfo.email.split('@')[0] }; 
+      confirmationText = `I've got the following:\n- Email: ${mergedInfo.email || '(missing)'}\n- Phone: ${mergedInfo.phone || '(missing)'}\n- DOB: ${mergedInfo.dateOfBirth || '(missing)'}\n\nIs that correct?`;
       break;
     }
     case 'travelGroup': {
       const group = extractTravelGroup(userMessage);
-      extractedData = { travelGroup: group };
-      const memberNames = group.members.map(m => `${m.name} (${m.age})`).join(', ');
-      confirmationText = `I have the following group members: ${memberNames}. Is that correct?`;
+      // For groups, we typically replace unless we implement complex merging. 
+      // For now, if the extraction found members, we use them.
+      // If the user says "I'm done", we might not extract members but we shouldn't overwrite with empty if we already have data.
+      
+      const hasNewMembers = group.members.length > 0;
+      const isDone = detectDoneSignal(userMessage);
+      
+      let finalGroup = group;
+      if (!hasNewMembers && profile.travelGroup && isDone) {
+          finalGroup = profile.travelGroup;
+      }
+      
+      extractedData = { travelGroup: finalGroup };
+      const memberNames = finalGroup.members.map(m => `${m.name} (${m.age})`).join(', ');
+      confirmationText = `I have the following group members: ${memberNames || 'Just you'}. Is that correct?`;
       
       // Check for minors followup
-      if (group.members.some(m => m.isMinor)) {
+      if (finalGroup.members.some(m => m.isMinor)) {
         confirmationText += "\n\nAlso, for the children, can you let me know about their school district? Or say 'Disregard'.";
       }
       break;
     }
     case 'location': {
       const loc = extractLocation(userMessage);
-      extractedData = { location: loc, homeAirport: loc.preferredAirports[0] };
-      confirmationText = `I've got your location as ${loc.city}, ${loc.state} (${loc.zipCode}) with preferred airport ${loc.preferredAirports.join(', ') || 'None'}. Is that right?`;
+      const mergedLoc = {
+          city: loc.city || profile.location?.city || '',
+          state: loc.state || profile.location?.state || '',
+          zipCode: loc.zipCode || profile.location?.zipCode || '',
+          preferredAirports: loc.preferredAirports.length > 0 ? loc.preferredAirports : (profile.location?.preferredAirports || []),
+          preferredTerminals: loc.preferredTerminals.length > 0 ? loc.preferredTerminals : (profile.location?.preferredTerminals || [])
+      };
+
+      extractedData = { location: mergedLoc, homeAirport: mergedLoc.preferredAirports[0] || profile.homeAirport };
+      confirmationText = `I've got your location as ${mergedLoc.city}, ${mergedLoc.state} (${mergedLoc.zipCode}) with preferred airport ${mergedLoc.preferredAirports.join(', ') || 'None'}. Is that right?`;
       break;
     }
     case 'upcomingTrips': {
