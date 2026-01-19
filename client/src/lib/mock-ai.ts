@@ -21,17 +21,55 @@ export const detectDoneSignal = (input: string): boolean => {
   return doneSignals.some(pattern => pattern.test(input));
 };
 
+// Helper to normalize phone numbers
+const normalizePhone = (phone: string): string => {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 11 && digits.startsWith('1')) {
+    return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+  return phone; // Return original if not a standard US number
+};
+
+// Helper to normalize dates to readable standard (Month DD, YYYY)
+const normalizeDate = (dateStr: string): string => {
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr; // Return original if parse fails
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (e) {
+    return dateStr;
+  }
+};
+
 // Extraction Logic
 const extractContactInfo = (input: string): ContactInfo => {
-  const emailRegex = /[\w.-]+@[\w.-]+\.\w+/;
-  const phoneRegex = /(\d{3}[-.\s]??\d{3}[-.\s]??\d{4}|\(\d{3}\)\s*\d{3}[-.\s]??\d{4})/;
-  // Supports: Jan 15 1985, 15 Jan 1985, 01/15/1985
-  const dateRegex = /(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2},?\s+\d{4}|\d{1,2}\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)[a-z]*\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{4}/i;
+  // Enhanced Email Regex: Handles subdomains, standard TLDs
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
   
+  // Enhanced Phone Regex: Handles (123) 456-7890, 123.456.7890, 123-456-7890, +1 123...
+  const phoneRegex = /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}/;
+  
+  // Enhanced Date Regex: Handles:
+  // - ISO: 1985-01-15
+  // - US: 01/15/1985, 1-15-85
+  // - Written: Jan 15, 1985; 15th January 1985; January 15th 1985
+  const dateRegex = /(?:(?:\d{1,2}(?:st|nd|rd|th)?\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?))|(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?,?)|(?:\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})|(?:\d{4}-\d{2}-\d{2}))(?:\s+(?:19|20)\d{2})?/i;
+  
+  const emailMatch = input.match(emailRegex);
+  const phoneMatch = input.match(phoneRegex);
+  const dateMatch = input.match(dateRegex);
+
   return {
-    email: input.match(emailRegex)?.[0] || '',
-    phone: input.match(phoneRegex)?.[0] || '',
-    dateOfBirth: input.match(dateRegex)?.[0] || ''
+    email: emailMatch ? emailMatch[0].toLowerCase().trim() : '',
+    phone: phoneMatch ? normalizePhone(phoneMatch[0]) : '',
+    dateOfBirth: dateMatch ? normalizeDate(dateMatch[0]) : ''
   };
 };
 
