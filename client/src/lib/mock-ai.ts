@@ -138,6 +138,8 @@ const extractLocation = (input: string): LocationInfo => {
   };
 };
 
+import { lookupCity } from './city-db';
+
 const extractUpcomingTrips = (input: string): Trip[] => {
   const trips: Trip[] = [];
   
@@ -148,17 +150,38 @@ const extractUpcomingTrips = (input: string): Trip[] => {
   sentences.forEach(sentence => {
      // 1. Extract Destination
      // Look for "to [Location]", "visit [Location]", or just Capitalized words that aren't months/keywords
-     // Exclude common keywords to avoid false positives
+     
+     // Specific City, State/Country Pattern (e.g. "Paris, France" or "Portland, Oregon")
+     const compoundDestPattern = /([A-Z][a-zA-Z\s]+),\s*([A-Z][a-zA-Z\s]+)/g;
+     
+     // Single Destination Pattern (Fall back if no compound found)
      const destPattern = /(?:going to|visit|visiting|trip to|in)\s+([A-Z][a-zA-Z\s]+)|(?<!^)\b([A-Z][a-zA-Z]+)\b/g;
      
-     const excludeWords = new Set(['Summer', 'Winter', 'Spring', 'Fall', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Me', 'My', 'Our', 'We', 'I', 'The', 'A', 'An', 'Next', 'Year', 'Month', 'Week']);
+     const excludeWords = new Set(['Summer', 'Winter', 'Spring', 'Fall', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Me', 'My', 'Our', 'We', 'I', 'The', 'A', 'An', 'Next', 'Year', 'Month', 'Week', 'Business', 'Family', 'Vacation', 'Trip', 'Holiday']);
      
-     const potentialDestinations = [];
+     const potentialDestinations: string[] = [];
      let match;
-     while ((match = destPattern.exec(sentence)) !== null) {
+     
+     // First pass: Check for "City, State" patterns
+     let sentenceCopy = sentence;
+     while ((match = compoundDestPattern.exec(sentence)) !== null) {
+        const fullLocation = match[0].trim();
+        // verify it's not a date like "January, 2025"
+        if (!fullLocation.match(/January|February|March|April|May|June|July|August|September|October|November|December/i)) {
+            potentialDestinations.push(fullLocation);
+            // Remove found location from sentence copy to avoid double matching
+            sentenceCopy = sentenceCopy.replace(match[0], '');
+        }
+     }
+
+     // Second pass: Check remaining single words
+     while ((match = destPattern.exec(sentenceCopy)) !== null) {
         const word = (match[1] || match[2]).trim();
         if (!excludeWords.has(word) && word.length > 2) {
-           potentialDestinations.push(word);
+           // Verify it's not part of an existing found destination
+           if (!potentialDestinations.some(d => d.includes(word))) {
+               potentialDestinations.push(word);
+           }
         }
      }
 
@@ -172,7 +195,7 @@ const extractUpcomingTrips = (input: string): Trip[] => {
      else if (sentence.match(/fall|autumn/i)) timeframe = 'Fall';
      else if (sentence.match(/next year/i)) timeframe = 'Next Year';
      else {
-        const monthMatch = sentence.match(/(?:january|february|march|april|may|june|july|august|september|october|november|december)/i);
+        const monthMatch = sentence.match(/(?:late\s+|early\s+)?(?:january|february|march|april|may|june|july|august|september|october|november|december)/i);
         if (monthMatch) timeframe = monthMatch[0];
      }
 
@@ -185,8 +208,23 @@ const extractUpcomingTrips = (input: string): Trip[] => {
 
      // Add a trip for each destination found in this context
      potentialDestinations.forEach(dest => {
+         // Logic for Location Enrichment
+         let finalDest = dest;
+         
+         // If it's a single word (no comma), try to lookup
+         if (!dest.includes(',')) {
+             const lookup = lookupCity(dest);
+             if (lookup) {
+                 if (lookup.country === 'United States' && lookup.state) {
+                     finalDest = `${dest}, ${lookup.state}`;
+                 } else {
+                     finalDest = `${dest}, ${lookup.country}`;
+                 }
+             }
+         }
+
          trips.push({
-             destination: dest,
+             destination: finalDest,
              timeframe: { type: 'approximate', description: timeframe },
              purpose,
              notes: ''
