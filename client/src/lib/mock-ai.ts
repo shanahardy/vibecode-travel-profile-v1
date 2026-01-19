@@ -1,99 +1,247 @@
-import { TravelProfile } from './store';
+import { TravelProfile, ContactInfo, TravelGroup, LocationInfo, Trip, PastTrip, BudgetPreferences } from './store';
+import { ONBOARDING_QUESTIONS } from './onboarding-constants';
 
 interface AIResponse {
   text: string;
   extractedData?: Partial<TravelProfile>;
+  type?: 'text' | 'confirmation' | 'followup' | 'completion';
+  requiresConfirmation?: boolean;
 }
 
-// Simple heuristic-based mock AI
-export async function generateAIResponse(
-  userMessage: string,
-  currentProfile: TravelProfile
-): Promise<AIResponse> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+// Helper to detect done signals
+export const detectDoneSignal = (input: string): boolean => {
+  const doneSignals = [
+    /i'?m done/i,
+    /that'?s it/i,
+    /finished/i,
+    /that'?s all/i,
+    /nothing else/i,
+    /that'?s everything/i
+  ];
+  return doneSignals.some(pattern => pattern.test(input));
+};
 
-  const lowerMsg = userMessage.toLowerCase();
-  const extractedData: Partial<TravelProfile> = {};
-
-  // Simple state machine simulation based on what's missing in the profile
+// Extraction Logic
+const extractContactInfo = (input: string): ContactInfo => {
+  const emailRegex = /[\w.-]+@[\w.-]+\.\w+/;
+  const phoneRegex = /(\d{3}[-.\s]??\d{3}[-.\s]??\d{4}|\(\d{3}\)\s*\d{3}[-.\s]??\d{4})/;
+  const dateRegex = /(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{4}/i;
   
-  // 1. Name
-  if (!currentProfile.name) {
-    // Very naive name extraction - assumes the user just types their name or "I am X"
-    const nameMatch = userMessage.match(/i am ([a-z\s]+)/i) || userMessage.match(/my name is ([a-z\s]+)/i);
-    const name = nameMatch ? nameMatch[1] : userMessage;
-    
-    extractedData.name = name;
-    return {
-      text: `Nice to meet you, ${name}! Where do you usually fly out of? (Your home airport)`,
-      extractedData,
-    };
+  return {
+    email: input.match(emailRegex)?.[0] || '',
+    phone: input.match(phoneRegex)?.[0] || '',
+    dateOfBirth: input.match(dateRegex)?.[0] || ''
+  };
+};
+
+const extractTravelGroup = (input: string): TravelGroup => {
+  const members: any[] = [];
+  const agePattern = /(\w+)\s+(?:is|who is)\s+(\d+)/gi;
+  let match;
+  
+  while ((match = agePattern.exec(input)) !== null) {
+    members.push({
+      name: match[1],
+      age: parseInt(match[2]),
+      isMinor: parseInt(match[2]) < 18
+    });
   }
 
-  // 2. Home Airport
-  if (!currentProfile.homeAirport) {
-    extractedData.homeAirport = userMessage.toUpperCase(); // Assume airport code or city
-    return {
-      text: "Got it. Now, how would you describe your travel style? (e.g., Adventure, Relaxing, Cultural, Foodie)",
-      extractedData,
-    };
+  // Determine type
+  let type: TravelGroup['type'] = 'group';
+  if (input.match(/just me|myself|solo/i)) type = 'solo';
+  else if (input.match(/wife|husband|partner/i) && members.length <= 2) type = 'partner';
+  else if (input.match(/family|kids|children/i)) type = 'family';
+
+  return { type, members };
+};
+
+const extractLocation = (input: string): LocationInfo => {
+  const cityStatePattern = /([A-Z][a-zA-Z\s]+),\s*([A-Z]{2})/;
+  const zipPattern = /\b\d{5}\b/;
+  const airportCodes = input.match(/\b[A-Z]{3}\b/g) || [];
+  
+  const cityStateMatch = input.match(cityStatePattern);
+
+  const terminals = [];
+  if (input.match(/train|station|amtrak/i)) terminals.push({ type: 'train', name: 'Train Station' });
+  if (input.match(/bus|greyhound/i)) terminals.push({ type: 'bus', name: 'Bus Terminal' });
+
+  return {
+    city: cityStateMatch?.[1]?.trim() || '',
+    state: cityStateMatch?.[2] || '',
+    zipCode: input.match(zipPattern)?.[0] || '',
+    preferredAirports: airportCodes,
+    preferredTerminals: terminals
+  };
+};
+
+const extractUpcomingTrips = (input: string): Trip[] => {
+  const trips: Trip[] = [];
+  const locationPattern = /(?:to|in|visiting)\s+([A-Z][a-zA-Z\s]+?)(?:\s+(?:for|in|during|sometime))/gi;
+  
+  let match;
+  while ((match = locationPattern.exec(input)) !== null) {
+    let purpose: Trip['purpose'] = 'vacation';
+    if (input.match(/business/i)) purpose = 'business';
+    if (input.match(/family/i)) purpose = 'family';
+
+    let timeframe = 'Next year';
+    if (input.match(/summer/i)) timeframe = 'Summer';
+    if (input.match(/winter/i)) timeframe = 'Winter';
+    const monthMatch = input.match(/(?:january|february|march|april|may|june|july|august|september|october|november|december)/i);
+    if (monthMatch) timeframe = monthMatch[0];
+
+    trips.push({
+      destination: match[1].trim(),
+      timeframe: { type: 'approximate', description: timeframe },
+      purpose,
+      notes: ''
+    });
   }
+  return trips;
+};
 
-  // 3. Travel Style
-  if (currentProfile.travelStyle.length === 0) {
-    const styles = [];
-    if (lowerMsg.includes('adventure')) styles.push('Adventure');
-    if (lowerMsg.includes('relax')) styles.push('Relaxing');
-    if (lowerMsg.includes('culture') || lowerMsg.includes('cultural')) styles.push('Cultural');
-    if (lowerMsg.includes('food')) styles.push('Foodie');
-    if (lowerMsg.includes('luxury')) styles.push('Luxury');
-    if (lowerMsg.includes('budget') || lowerMsg.includes('cheap')) styles.push('Budget-Friendly');
-    
-    // If we couldn't parse specific keywords, just take the whole input as a tag for now
-    if (styles.length === 0) styles.push(userMessage);
+const extractPastTrip = (input: string): PastTrip => {
+  const likes = [];
+  if (input.match(/loved|liked|enjoyed|great/i)) likes.push('The experience'); // Simplified
+  
+  const dislikes = [];
+  if (input.match(/didn't like|hated|bad|crowded/i)) dislikes.push('Crowds/Wait times'); // Simplified
 
-    extractedData.travelStyle = styles;
-    return {
-      text: "That sounds fun! Speaking of budget, would you say you prefer Budget, Moderate, or Luxury trips?",
-      extractedData,
+  const specialNeeds = [];
+  if (input.match(/stroller|wheelchair/i)) specialNeeds.push('Mobility assistance');
+  if (input.match(/allergy|dietary|vegan/i)) specialNeeds.push('Dietary restrictions');
+
+  return {
+    destination: 'Last Trip', // Simplified extraction
+    date: 'Recently',
+    likes,
+    dislikes,
+    specialNeeds,
+    summary: input
+  };
+};
+
+const extractBudgetPreferences = (input: string): BudgetPreferences => {
+  const priorities: BudgetPreferences['priorityCategories'] = {
+    flights: 'medium',
+    lodging: 'medium',
+    food: 'medium',
+    activities: 'medium'
+  };
+
+  if (input.match(/economy|cheap flight|basic/i)) priorities.flights = 'low';
+  if (input.match(/nice hotel|luxury|resort/i)) priorities.lodging = 'high';
+  if (input.match(/splurge on food|fine dining/i)) priorities.food = 'high';
+
+  const rangePattern = /\$?([\d,]+)\s*(?:to|-)\s*\$?([\d,]+)/;
+  const rangeMatch = input.match(rangePattern);
+  
+  let budgetRange;
+  if (rangeMatch) {
+    budgetRange = {
+      min: parseInt(rangeMatch[1].replace(/,/g, '')),
+      max: parseInt(rangeMatch[2].replace(/,/g, '')),
+      currency: 'USD'
     };
-  }
-
-  // 4. Budget
-  if (!currentProfile.budget) {
-    if (lowerMsg.includes('luxury')) extractedData.budget = 'luxury';
-    else if (lowerMsg.includes('moderate')) extractedData.budget = 'moderate';
-    else extractedData.budget = 'budget';
-
-    return {
-      text: "Noted. Who do you usually travel with? (Solo, Partner, Family, Friends)",
-      extractedData,
-    };
-  }
-
-  // 5. Companions
-  if (!currentProfile.travelCompanions) {
-    extractedData.travelCompanions = userMessage;
-    return {
-      text: "Almost done! Do you have any dietary restrictions or specific interests I should know about?",
-      extractedData,
-    };
-  }
-
-  // 6. Catch-all / Interests
-  if (lowerMsg.includes('vegetarian') || lowerMsg.includes('vegan') || lowerMsg.includes('gluten')) {
-     const diet = [];
-     if (lowerMsg.includes('vegetarian')) diet.push('Vegetarian');
-     if (lowerMsg.includes('vegan')) diet.push('Vegan');
-     if (lowerMsg.includes('gluten')) diet.push('Gluten-Free');
-     extractedData.dietaryRestrictions = [...currentProfile.dietaryRestrictions, ...diet];
-  } else {
-     extractedData.interests = [...currentProfile.interests, userMessage];
   }
 
   return {
-    text: "Thanks for sharing! I've updated your profile. You can check the 'Profile' tab to see what I've gathered, or keep chatting to add more details.",
+    priorityCategories: priorities,
+    budgetRange,
+    notes: input
+  };
+};
+
+// Main Handler
+export async function handleOnboardingStep(
+  userMessage: string,
+  currentStep: number,
+  isAwaitingConfirmation: boolean,
+  profile: TravelProfile
+): Promise<AIResponse> {
+  // Simulate delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  const question = ONBOARDING_QUESTIONS[currentStep];
+
+  // 1. Handle Confirmation Response
+  if (isAwaitingConfirmation) {
+    if (userMessage.match(/yes|correct|right|yep|sure/i)) {
+      const nextStep = currentStep + 1;
+      if (nextStep < ONBOARDING_QUESTIONS.length) {
+        return {
+          text: ONBOARDING_QUESTIONS[nextStep].prompt,
+          type: 'text'
+        };
+      } else {
+        return {
+          text: "Excellent! Your travel profile is complete. Ready to start planning your next adventure?",
+          type: 'completion'
+        };
+      }
+    } else {
+       return {
+         text: "No problem! Please provide the correct information.",
+         type: 'followup' // Keep them on the same step
+       };
+    }
+  }
+
+  // 2. Extract Data based on Step
+  let extractedData: Partial<TravelProfile> = {};
+  let confirmationText = "";
+
+  switch (question.id) {
+    case 'contactInfo': {
+      const info = extractContactInfo(userMessage);
+      extractedData = { contactInfo: info, name: profile.name || info.email.split('@')[0] }; // Fallback name
+      confirmationText = `I've got the following:\n- Email: ${info.email}\n- Phone: ${info.phone}\n- DOB: ${info.dateOfBirth}\n\nIs that correct?`;
+      break;
+    }
+    case 'travelGroup': {
+      const group = extractTravelGroup(userMessage);
+      extractedData = { travelGroup: group };
+      const memberNames = group.members.map(m => `${m.name} (${m.age})`).join(', ');
+      confirmationText = `I have the following group members: ${memberNames}. Is that correct?`;
+      
+      // Check for minors followup
+      if (group.members.some(m => m.isMinor)) {
+        confirmationText += "\n\nAlso, for the children, can you let me know about their school district? Or say 'Disregard'.";
+      }
+      break;
+    }
+    case 'location': {
+      const loc = extractLocation(userMessage);
+      extractedData = { location: loc, homeAirport: loc.preferredAirports[0] };
+      confirmationText = `I've got your location as ${loc.city}, ${loc.state} (${loc.zipCode}) with preferred airport ${loc.preferredAirports.join(', ') || 'None'}. Is that right?`;
+      break;
+    }
+    case 'upcomingTrips': {
+      const trips = extractUpcomingTrips(userMessage);
+      extractedData = { upcomingTrips: trips };
+      confirmationText = `I've noted ${trips.length} upcoming trips. Is that everything?`;
+      break;
+    }
+    case 'pastTrips': {
+      const past = extractPastTrip(userMessage);
+      extractedData = { pastTrips: [past] };
+      confirmationText = `So your last trip had some ups and downs. I've noted your preferences. Is that accurate?`;
+      break;
+    }
+    case 'budgetPreferences': {
+      const budget = extractBudgetPreferences(userMessage);
+      extractedData = { budgetPreferences: budget };
+      confirmationText = `Based on what you shared, I've updated your budget priorities. Does that look right?`;
+      break;
+    }
+  }
+
+  return {
+    text: confirmationText,
     extractedData,
+    requiresConfirmation: true,
+    type: 'confirmation'
   };
 }

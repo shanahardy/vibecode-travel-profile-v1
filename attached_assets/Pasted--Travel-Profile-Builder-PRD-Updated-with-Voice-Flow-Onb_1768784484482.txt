@@ -1,0 +1,1446 @@
+# Travel Profile Builder PRD - Updated with Voice Flow Onboarding
+
+## Overview
+A conversational travel profile application that helps users create comprehensive, reusable travel profiles through an intuitive voice and text-based interface. The system uses AI to gather, extract, and organize travel preferences to streamline future trip planning and booking. After onboarding, users can immediately leverage their profile to plan detailed trip itineraries with booking links.
+
+## User Stories
+
+### Onboarding & Profile Management
+- As a user, I want to build my travel profile through natural conversation (voice or text)
+- As a user, I want the system to extract and confirm specific data points from my responses
+- As a user, I want to view and edit all my saved profile information in real-time
+- As a user, I want my travel group details automatically saved for future bookings
+- As a user, I want my location and preferred airports remembered
+- As a user, I want my budget priorities and past trip insights saved
+- As a user, I want to signal when I'm done with open-ended responses by saying phrases like "I'm done", "Finished", or "That's it"
+
+### Trip Planning
+- As a user, I want to plan my next trip using my saved profile
+- As a user, I want to plan a dream vacation itinerary
+- As a user, I want personalized recommendations based on my preferences
+- As a user, I want a detailed day-by-day itinerary
+- As a user, I want links to book flights, hotels, and activities
+- As a user, I want budget estimates based on my preferences
+- As a user, I want to save and edit multiple trip plans
+
+## Implementation Phases
+
+### Phase 1: Frontend Prototype & Voice Flow Onboarding ⭐
+**CRITICAL: This is the core deliverable for Phase 1**
+- React application with text-based conversation interface
+- Six-question onboarding flow with confirmation loops
+- Mock AI responses for conversation flow (simulating data extraction)
+- Real-time data extraction and display in editable sidebar
+- Profile data collection and storage (localStorage)
+- Profile editing interface with inline editable fields
+- Progress tracking and navigation (6 steps)
+- Responsive design for mobile and desktop
+- "Done" signal detection for open-ended questions
+
+### Phase 2: Backend Integration & AI
+- OpenAI Agent Builder integration
+- Real-time data extraction and validation with AI
+- Persistent database storage
+- API endpoints for profile management
+- Actual NLP-based confirmation and correction loops
+
+### Phase 3: Voice Integration
+- VoiceFlow integration for voice interaction
+- Speech-to-text and text-to-speech
+- Voice mode toggle
+- Audio feedback and prompts
+
+### Phase 4: Trip Planning Engine
+- Trip planning conversation flow
+- Profile-aware recommendations
+- Itinerary generation (day-by-day)
+- Activity and restaurant suggestions
+- Budget estimation based on preferences
+- External booking links (flights, hotels, activities)
+- Itinerary save and edit functionality
+- Multiple trip management
+
+### Phase 5: Enhanced Planning Features
+- Weather and seasonal recommendations
+- School calendar integration for families
+- Alternative destination suggestions
+- Packing list generator
+- Travel tips based on destination
+- Itinerary sharing and collaboration
+- Trip comparison tool
+
+### Phase 6: Booking Integration (Future)
+- Direct booking API integrations
+- Price monitoring and alerts
+- One-click booking from itineraries
+- Travel document management
+- Loyalty program integration
+- Real-time availability checking
+
+## Design System
+
+[Previous design system content remains the same - all color, typography, spacing, and shadow specifications]
+
+## Frontend Architecture
+
+### Technology Stack
+```json
+{
+  "core": {
+    "react": "^18.2.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  },
+  "styling": {
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  },
+  "state": {
+    "zustand": "^4.5.0"
+  },
+  "forms": {
+    "react-hook-form": "^7.50.0",
+    "zod": "^3.22.0"
+  },
+  "routing": {
+    "react-router-dom": "^6.22.0"
+  },
+  "utilities": {
+    "date-fns": "^3.3.0",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.344.0"
+  },
+  "animation": {
+    "framer-motion": "^11.0.0"
+  }
+}
+```
+
+### Project Structure
+```
+src/
+├── components/
+│   ├── onboarding/
+│   │   ├── OnboardingContainer.tsx          # Main onboarding layout
+│   │   ├── ConversationPanel.tsx            # Left side - conversation
+│   │   ├── ProfileDataPanel.tsx             # Right side - extracted data
+│   │   ├── QuestionPrompt.tsx               # AI question display
+│   │   ├── UserMessage.tsx                  # User message display
+│   │   ├── UserInput.tsx                    # Input with send button
+│   │   ├── ConfirmationDialog.tsx           # Inline confirmation
+│   │   ├── ProgressIndicator.tsx            # 6-step progress
+│   │   ├── ExtractedDataCard.tsx            # Real-time data display
+│   │   ├── EditableField.tsx                # Inline editable fields
+│   │   └── DoneSignalDetector.tsx           # Detects "I'm done" phrases
+│   ├── profile/
+│   │   ├── ProfileDashboard.tsx
+│   │   ├── ProfileCard.tsx
+│   │   ├── TravelGroupSection.tsx
+│   │   ├── LocationSection.tsx
+│   │   ├── BudgetSection.tsx
+│   │   └── TripHistorySection.tsx
+│   ├── trip-planning/
+│   │   ├── TripPlanningInterface.tsx
+│   │   ├── ItineraryView.tsx
+│   │   ├── DayPlanCard.tsx
+│   │   ├── ActivityCard.tsx
+│   │   ├── BudgetBreakdown.tsx
+│   │   ├── BookingLinksPanel.tsx
+│   │   └── ItineraryEditor.tsx
+│   ├── shared/
+│   │   ├── Button.tsx
+│   │   ├── Input.tsx
+│   │   ├── Select.tsx
+│   │   ├── Card.tsx
+│   │   ├── Badge.tsx
+│   │   ├── Modal.tsx
+│   │   ├── Tooltip.tsx
+│   │   └── LoadingSpinner.tsx
+│   └── layout/
+│       ├── Header.tsx
+│       ├── Navigation.tsx
+│       ├── Sidebar.tsx
+│       └── Layout.tsx
+├── pages/
+│   ├── Welcome.tsx
+│   ├── Onboarding.tsx                       # Two-panel layout page
+│   ├── Profile.tsx
+│   ├── TripPlanning.tsx
+│   ├── Itineraries.tsx
+│   └── ItineraryDetail.tsx
+├── hooks/
+│   ├── useOnboarding.ts                     # Main onboarding logic
+│   ├── useDataExtraction.ts                 # Mock extraction logic
+│   ├── useProfile.ts
+│   ├── useTripPlanning.ts
+│   ├── useLocalStorage.ts
+│   └── useConversation.ts
+├── store/
+│   ├── profileStore.ts
+│   ├── onboardingStore.ts                   # Tracks current question, extracted data
+│   └── itineraryStore.ts
+├── utils/
+│   ├── validation.ts
+│   ├── formatting.ts
+│   ├── mockResponses.ts                     # Mock AI responses
+│   ├── dataExtraction.ts                    # Mock extraction patterns
+│   └── doneSignalDetection.ts               # Detects completion phrases
+├── types/
+│   ├── profile.ts
+│   ├── itinerary.ts
+│   ├── conversation.ts
+│   └── onboarding.ts                        # Onboarding-specific types
+├── constants/
+│   ├── onboardingQuestions.ts               # 6 questions defined
+│   └── defaultValues.ts
+└── styles/
+    └── global.css
+```
+
+## Phase 1: Onboarding Flow Specification
+
+### Onboarding Layout
+
+**Two-Panel Layout:**
+```jsx
+<div className="flex h-screen bg-background">
+  {/* Left Panel - Conversation */}
+  <div className="flex-1 flex flex-col">
+    <ProgressIndicator currentStep={currentStep} totalSteps={6} />
+    <ConversationPanel messages={messages} />
+    <UserInput onSubmit={handleSubmit} />
+  </div>
+  
+  {/* Right Panel - Extracted Data */}
+  <div className="w-96 bg-sidebar border-l border-sidebar-border overflow-y-auto">
+    <ProfileDataPanel extractedData={extractedData} onEdit={handleEdit} />
+  </div>
+</div>
+```
+
+### Six-Question Onboarding Flow
+
+#### Question 1: Contact Details
+
+**AI Prompt:**
+```
+"Welcome! Let's start building your travel profile. First, I need to confirm your primary contact details. Please share your phone number, email address, and date of birth. This information will be used to populate your bookings."
+```
+
+**User Input Example:**
+```
+"My email is john.doe@email.com, phone is 555-123-4567, and I was born on March 15, 1985"
+```
+
+**Mock Extraction Logic:**
+```typescript
+// utils/dataExtraction.ts
+export const extractContactInfo = (input: string) => {
+  // Simple regex patterns for demo
+  const emailRegex = /[\w.-]+@[\w.-]+\.\w+/;
+  const phoneRegex = /(\d{3}[-.\s]??\d{3}[-.\s]??\d{4}|\(\d{3}\)\s*\d{3}[-.\s]??\d{4})/;
+  const dateRegex = /(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{4}/i;
+  
+  return {
+    email: input.match(emailRegex)?.[0] || '',
+    phone: input.match(phoneRegex)?.[0] || '',
+    dateOfBirth: input.match(dateRegex)?.[0] || ''
+  };
+};
+```
+
+**AI Confirmation:**
+```
+"I've got the following:
+- Email: john.doe@email.com
+- Phone: 555-123-4567  
+- Date of Birth: March 15, 1985
+
+Is that correct?"
+```
+
+**Real-time Display (Right Panel):**
+```jsx
+<ExtractedDataCard title="Contact Information" icon={<UserIcon />}>
+  <EditableField 
+    label="Email" 
+    value="john.doe@email.com" 
+    type="email"
+    onSave={handleSave}
+  />
+  <EditableField 
+    label="Phone" 
+    value="555-123-4567" 
+    type="tel"
+    onSave={handleSave}
+  />
+  <EditableField 
+    label="Date of Birth" 
+    value="March 15, 1985" 
+    type="date"
+    onSave={handleSave}
+  />
+</ExtractedDataCard>
+```
+
+#### Question 2: Travel Group
+
+**AI Prompt:**
+```
+"Tell me about your primary travel group. Is it just yourself, with a partner, or family? Please let me know the name and age of each person, including children. Don't worry, we'll build out details as we go. Let me know when you're done with your description by simply saying something like 'I'm done', 'Finished', or 'That's it'."
+```
+
+**User Input Example:**
+```
+"It's me, my wife Sarah who is 32, and our two kids - Ashley is 5 years old and Jonathan is 14. That's it."
+```
+
+**Done Signal Detection:**
+```typescript
+// utils/doneSignalDetection.ts
+export const detectDoneSignal = (input: string): boolean => {
+  const doneSignals = [
+    /i'?m done/i,
+    /that'?s it/i,
+    /finished/i,
+    /that'?s all/i,
+    /nothing else/i,
+    /that'?s everything/i
+  ];
+  
+  return doneSignals.some(pattern => pattern.test(input));
+};
+```
+
+**Mock Extraction Logic:**
+```typescript
+export const extractTravelGroup = (input: string) => {
+  // Simplified pattern matching for demo
+  // In real implementation, this would use NLP
+  const members = [];
+  
+  // Pattern: "name is/who is age"
+  const agePattern = /(\w+)\s+(?:is|who is)\s+(\d+)/gi;
+  let match;
+  
+  while ((match = agePattern.exec(input)) !== null) {
+    members.push({
+      name: match[1],
+      age: parseInt(match[2]),
+      isMinor: parseInt(match[2]) < 18
+    });
+  }
+  
+  return {
+    type: determineGroupType(input, members.length),
+    members
+  };
+};
+
+const determineGroupType = (input: string, memberCount: number) => {
+  if (input.match(/just me|myself|solo/i)) return 'solo';
+  if (input.match(/wife|husband|partner/i) && memberCount === 2) return 'partner';
+  if (input.match(/family|kids|children/i)) return 'family';
+  return 'group';
+};
+```
+
+**AI Confirmation:**
+```
+"I have the following travel group members:
+- Sarah, 32 years old
+- Ashley, 5 years old  
+- Jonathan, 14 years old
+
+Is that correct?"
+```
+
+**Follow-up Question (if minors detected):**
+```
+"For the children in your family - Ashley (5 years old) and Jonathan (14 years old) - can you let me know what school and/or school district they're in so when possible we can account for their school calendar? Or you can say 'Disregard' and come back to this later."
+```
+
+**Real-time Display:**
+```jsx
+<ExtractedDataCard title="Travel Group" icon={<UsersIcon />}>
+  <div className="mb-2">
+    <Badge variant="secondary">{groupType}</Badge>
+  </div>
+  
+  {members.map((member, idx) => (
+    <div key={idx} className="mb-3 p-3 bg-accent rounded-lg">
+      <div className="flex items-center justify-between mb-2">
+        <EditableField 
+          label="Name" 
+          value={member.name}
+          inline
+          onSave={(val) => handleMemberUpdate(idx, 'name', val)}
+        />
+        <EditableField 
+          label="Age" 
+          value={member.age}
+          type="number"
+          inline
+          onSave={(val) => handleMemberUpdate(idx, 'age', val)}
+        />
+      </div>
+      
+      {member.isMinor && (
+        <EditableField 
+          label="School/District" 
+          value={member.schoolInfo?.schoolName || ''}
+          placeholder="Optional"
+          onSave={(val) => handleMemberUpdate(idx, 'school', val)}
+        />
+      )}
+    </div>
+  ))}
+</ExtractedDataCard>
+```
+
+#### Question 3: Location & Travel Terminals
+
+**AI Prompt:**
+```
+"Tell me about where you live by sharing your City, State, and Zip Code. You can also give me your full address if you'd like. What airports or travel terminals do you usually travel from?"
+```
+
+**User Input Example:**
+```
+"I live in Portland, Oregon, 97205. We usually fly out of PDX, but sometimes we take the train from Union Station."
+```
+
+**Mock Extraction Logic:**
+```typescript
+export const extractLocation = (input: string) => {
+  // City, State pattern
+  const cityStatePattern = /([A-Z][a-zA-Z\s]+),\s*([A-Z]{2})/;
+  const zipPattern = /\b\d{5}\b/;
+  const airportPattern = /\b[A-Z]{3}\b/g; // 3-letter codes
+  
+  const cityStateMatch = input.match(cityStatePattern);
+  
+  return {
+    city: cityStateMatch?.[1]?.trim() || '',
+    state: cityStateMatch?.[2] || '',
+    zipCode: input.match(zipPattern)?.[0] || '',
+    preferredAirports: extractAirports(input),
+    preferredTerminals: extractTerminals(input)
+  };
+};
+
+const extractAirports = (input: string) => {
+  const airports = [];
+  const airportCodes = input.match(/\b[A-Z]{3}\b/g) || [];
+  
+  airportCodes.forEach(code => {
+    airports.push(code);
+  });
+  
+  return airports;
+};
+
+const extractTerminals = (input: string) => {
+  const terminals = [];
+  
+  if (input.match(/train|station|amtrak/i)) {
+    const stationMatch = input.match(/([\w\s]+)\s+(?:train\s+)?station/i);
+    terminals.push({
+      type: 'train',
+      name: stationMatch?.[1]?.trim() || 'Train Station'
+    });
+  }
+  
+  if (input.match(/bus|greyhound/i)) {
+    terminals.push({
+      type: 'bus',
+      name: 'Bus Terminal'
+    });
+  }
+  
+  if (input.match(/ferry|boat/i)) {
+    terminals.push({
+      type: 'ferry',
+      name: 'Ferry Terminal'
+    });
+  }
+  
+  return terminals;
+};
+```
+
+**AI Confirmation:**
+```
+"I've got your location as:
+- City: Portland, Oregon
+- Zip Code: 97205
+- Preferred Airport: PDX
+- Other Terminals: Union Station (train)
+
+Is that right?"
+```
+
+**Real-time Display:**
+```jsx
+<ExtractedDataCard title="Location & Travel" icon={<MapPinIcon />}>
+  <EditableField 
+    label="City" 
+    value="Portland"
+    onSave={handleSave}
+  />
+  <EditableField 
+    label="State" 
+    value="Oregon"
+    onSave={handleSave}
+  />
+  <EditableField 
+    label="Zip Code" 
+    value="97205"
+    onSave={handleSave}
+  />
+  
+  <div className="mt-4">
+    <label className="text-sm text-muted-foreground">Airports</label>
+    <div className="flex gap-2 mt-1">
+      <Badge>PDX</Badge>
+      <button className="text-xs text-primary">+ Add</button>
+    </div>
+  </div>
+  
+  <div className="mt-4">
+    <label className="text-sm text-muted-foreground">Other Terminals</label>
+    <div className="mt-1 space-y-1">
+      <div className="flex items-center justify-between text-sm">
+        <span>Union Station (train)</span>
+        <button className="text-destructive text-xs">Remove</button>
+      </div>
+    </div>
+  </div>
+</ExtractedDataCard>
+```
+
+#### Question 4: Upcoming Trips
+
+**AI Prompt:**
+```
+"Do you have any trips you'll be planning in the next year, or would like to plan? If yes, let me know when and where and the nature of the trip (business, family vacation, etc.), or give me an idea of what you had in mind if you're not sure."
+```
+
+**User Input Example:**
+```
+"Yes, we're thinking about going to Hawaii for a family vacation sometime in summer, probably July. We also have a business trip to New York planned for late September."
+```
+
+**Mock Extraction Logic:**
+```typescript
+export const extractUpcomingTrips = (input: string) => {
+  const trips = [];
+  
+  // Look for destinations
+  const destinations = extractDestinations(input);
+  const timeframes = extractTimeframes(input);
+  const purposes = extractPurposes(input);
+  
+  // Simple heuristic: match destinations with timeframes
+  destinations.forEach((dest, idx) => {
+    trips.push({
+      destination: dest,
+      timeframe: timeframes[idx] || { type: 'approximate', description: 'Next year' },
+      purpose: purposes[idx] || 'vacation',
+      notes: ''
+    });
+  });
+  
+  return trips;
+};
+
+const extractDestinations = (input: string) => {
+  const destinations = [];
+  const locationPattern = /(?:to|in|visiting)\s+([A-Z][a-zA-Z\s]+?)(?:\s+(?:for|in|during|sometime))/gi;
+  
+  let match;
+  while ((match = locationPattern.exec(input)) !== null) {
+    destinations.push(match[1].trim());
+  }
+  
+  return destinations;
+};
+
+const extractTimeframes = (input: string) => {
+  const timeframes = [];
+  
+  // Season patterns
+  if (input.match(/summer|july|june|august/i)) {
+    timeframes.push({
+      type: 'approximate',
+      description: 'Summer (July)'
+    });
+  }
+  
+  // Month patterns
+  const monthMatch = input.match(/(?:late\s+)?(?:january|february|march|april|may|june|july|august|september|october|november|december)/gi);
+  if (monthMatch) {
+    monthMatch.forEach(month => {
+      timeframes.push({
+        type: 'approximate',
+        description: month
+      });
+    });
+  }
+  
+  return timeframes;
+};
+
+const extractPurposes = (input: string) => {
+  const purposes = [];
+  
+  if (input.match(/business/i)) purposes.push('business');
+  if (input.match(/family|vacation/i)) purposes.push('vacation');
+  
+  return purposes;
+};
+```
+
+**AI Confirmation:**
+```
+"I've noted 2 upcoming trips:
+1. Hawaii - Summer (July) - Family vacation
+2. New York - Late September - Business trip
+
+Does that capture everything?"
+```
+
+**Real-time Display:**
+```jsx
+<ExtractedDataCard title="Upcoming Trips" icon={<CalendarIcon />}>
+  {upcomingTrips.map((trip, idx) => (
+    <div key={idx} className="mb-3 p-3 bg-accent rounded-lg">
+      <EditableField 
+        label="Destination" 
+        value={trip.destination}
+        onSave={(val) => handleTripUpdate(idx, 'destination', val)}
+      />
+      <EditableField 
+        label="When" 
+        value={trip.timeframe.description}
+        onSave={(val) => handleTripUpdate(idx, 'timeframe', val)}
+      />
+      <div className="mt-2">
+        <label className="text-sm text-muted-foreground">Purpose</label>
+        <select 
+          value={trip.purpose}
+          onChange={(e) => handleTripUpdate(idx, 'purpose', e.target.value)}
+          className="w-full mt-1 px-3 py-2 border border-input rounded-md"
+        >
+          <option value="vacation">Vacation</option>
+          <option value="business">Business</option>
+          <option value="family">Family</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+  ))}
+  
+  <button className="w-full mt-2 py-2 border border-dashed border-border rounded-lg text-sm text-muted-foreground hover:bg-accent">
+    + Add Another Trip
+  </button>
+</ExtractedDataCard>
+```
+
+#### Question 5: Last Trip Experience
+
+**AI Prompt:**
+```
+"Tell me a little about your last trip or vacation. Where did you go, what did you like and not like about it? Did you have any special needs based on yourself or others you were traveling with?"
+```
+
+**User Input Example:**
+```
+"Last summer we went to Disney World with the whole family. The kids loved the rides and meeting characters. We didn't like how crowded it was and the long wait times. Ashley needed a stroller because she gets tired easily, and we had to make sure restaurants could accommodate Jonathan's peanut allergy."
+```
+
+**Mock Extraction Logic:**
+```typescript
+export const extractPastTrip = (input: string) => {
+  return {
+    destination: extractDestination(input),
+    date: extractDate(input),
+    likes: extractLikes(input),
+    dislikes: extractDislikes(input),
+    specialNeeds: extractSpecialNeeds(input),
+    summary: generateSummary(input)
+  };
+};
+
+const extractLikes = (input: string) => {
+  const likes = [];
+  const likePatterns = [
+    /loved?\s+([^.!?]+)/gi,
+    /enjoyed?\s+([^.!?]+)/gi,
+    /liked?\s+([^.!?]+)/gi,
+    /great\s+([^.!?]+)/gi
+  ];
+  
+  likePatterns.forEach(pattern => {
+    let match;
+    while ((match = pattern.exec(input)) !== null) {
+      likes.push(match[1].trim());
+    }
+  });
+  
+  return likes;
+};
+
+const extractDislikes = (input: string) => {
+  const dislikes = [];
+  const dislikePatterns = [
+    /didn'?t like\s+([^.!?]+)/gi,
+    /hated?\s+([^.!?]+)/gi,
+    /wasn'?t fan of\s+([^.!?]+)/gi,
+    /too\s+([^.!?]+)/gi
+  ];
+  
+  dislikePatterns.forEach(pattern => {
+    let match;
+    while ((match = pattern.exec(input)) !== null) {
+      dislikes.push(match[1].trim());
+    }
+  });
+  
+  return dislikes;
+};
+
+const extractSpecialNeeds = (input: string) => {
+  const needs = [];
+  
+  if (input.match(/stroller|wheelchair|mobility/i)) {
+    needs.push('Mobility assistance');
+  }
+  
+  if (input.match(/allergy|allergies|allergic/i)) {
+    const allergyMatch = input.match(/(\w+)\s+allergy/i);
+    if (allergyMatch) {
+      needs.push(`${allergyMatch[1]} allergy`);
+    }
+  }
+  
+  if (input.match(/dietary|vegetarian|vegan|gluten/i)) {
+    needs.push('Dietary restrictions');
+  }
+  
+  return needs;
+};
+```
+
+**AI Confirmation:**
+```
+"So your last trip was to Disney World last summer with your family. You enjoyed:
+- The rides
+- Meeting characters
+
+But you weren't fond of:
+- The crowds
+- Long wait times
+
+Special needs included:
+- Stroller for Ashley
+- Peanut allergy accommodations for Jonathan
+
+Is that accurate?"
+```
+
+**Real-time Display:**
+```jsx
+<ExtractedDataCard title="Last Trip" icon={<MapIcon />}>
+  <EditableField 
+    label="Destination" 
+    value="Disney World"
+    onSave={handleSave}
+  />
+  <EditableField 
+    label="When" 
+    value="Last summer"
+    onSave={handleSave}
+  />
+  
+  <div className="mt-4">
+    <label className="text-sm text-muted-foreground">What you liked</label>
+    <div className="mt-1 space-y-1">
+      {likes.map((like, idx) => (
+        <div key={idx} className="flex items-center gap-2">
+          <CheckIcon className="w-3 h-3 text-primary" />
+          <span className="text-sm">{like}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+  
+  <div className="mt-4">
+    <label className="text-sm text-muted-foreground">What you didn't like</label>
+    <div className="mt-1 space-y-1">
+      {dislikes.map((dislike, idx) => (
+        <div key={idx} className="flex items-center gap-2">
+          <XIcon className="w-3 h-3 text-destructive" />
+          <span className="text-sm">{dislike}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+  
+  <div className="mt-4">
+    <label className="text-sm text-muted-foreground">Special needs</label>
+    <div className="mt-1 space-y-1">
+      {specialNeeds.map((need, idx) => (
+        <Badge key={idx} variant="outline">{need}</Badge>
+      ))}
+    </div>
+  </div>
+</ExtractedDataCard>
+```
+
+#### Question 6: Budget & Spending Priorities
+
+**AI Prompt:**
+```
+"Tell me about your budget requirements and spending preferences. Do you prefer cheaper airline seats but more budget for lodging and food? What are your priorities spending-wise? If you have a specific budget number range, please share."
+```
+
+**User Input Example:**
+```
+"We're okay with basic economy flights to save money, but we want nice hotels with pools for the kids. We like to splurge on good restaurants. For a week-long trip, we usually budget around $5,000 to $7,000 total."
+```
+
+**Mock Extraction Logic:**
+```typescript
+export const extractBudgetPreferences = (input: string) => {
+  return {
+    priorityCategories: {
+      flights: determinePriority(input, 'flights'),
+      lodging: determinePriority(input, 'lodging'),
+      food: determinePriority(input, 'food'),
+      activities: determinePriority(input, 'activities')
+    },
+    budgetRange: extractBudgetRange(input),
+    notes: input
+  };
+};
+
+const determinePriority = (input: string, category: string): 'low' | 'medium' | 'high' => {
+  const categoryKeywords = {
+    flights: ['flight', 'airline', 'seats', 'fly'],
+    lodging: ['hotel', 'lodging', 'accommodation', 'stay'],
+    food: ['food', 'restaurant', 'dining', 'meal'],
+    activities: ['activity', 'activities', 'tours', 'excursion']
+  };
+  
+  const keywords = categoryKeywords[category];
+  const categoryText = extractCategoryContext(input, keywords);
+  
+  // High priority indicators
+  if (categoryText.match(/splurge|nice|upscale|priority|important|luxury/i)) {
+    return 'high';
+  }
+  
+  // Low priority indicators
+  if (categoryText.match(/cheap|basic|economy|save|budget/i)) {
+    return 'low';
+  }
+  
+  return 'medium';
+};
+
+const extractCategoryContext = (input: string, keywords: string[]) => {
+  // Extract sentences containing category keywords
+  const sentences = input.split(/[.!?]+/);
+  return sentences.filter(s => 
+    keywords.some(kw => s.toLowerCase().includes(kw))
+  ).join(' ');
+};
+
+const extractBudgetRange = (input: string) => {
+  const rangePattern = /\$?([\d,]+)\s*(?:to|-)\s*\$?([\d,]+)/;
+  const singlePattern = /\$?([\d,]+)/;
+  
+  const rangeMatch = input.match(rangePattern);
+  if (rangeMatch) {
+    return {
+      min: parseInt(rangeMatch[1].replace(/,/g, '')),
+      max: parseInt(rangeMatch[2].replace(/,/g, '')),
+      currency: 'USD'
+    };
+  }
+  
+  const singleMatch = input.match(singlePattern);
+  if (singleMatch) {
+    const amount = parseInt(singleMatch[1].replace(/,/g, ''));
+    return {
+      min: amount * 0.8,
+      max: amount * 1.2,
+      currency: 'USD'
+    };
+  }
+  
+  return null;
+};
+```
+
+**AI Confirmation:**
+```
+"Based on what you've shared, here are your budget priorities:
+- Flights: Low priority (economy to save money)
+- Lodging: High priority (nice hotels with pools)
+- Food: High priority (splurge on restaurants)
+- Activities: Medium priority
+
+Budget range: $5,000 - $7,000 for a week-long trip
+
+Does that capture your preferences?"
+```
+
+**Real-time Display:**
+```jsx
+<ExtractedDataCard title="Budget & Priorities" icon={<DollarSignIcon />}>
+  <div className="space-y-3">
+    <PrioritySelector 
+      label="Flights"
+      value={budgetPreferences.flights}
+      onChange={(val) => handlePriorityChange('flights', val)}
+    />
+    <PrioritySelector 
+      label="Lodging"
+      value={budgetPreferences.lodging}
+      onChange={(val) => handlePriorityChange('lodging', val)}
+    />
+    <PrioritySelector 
+      label="Food"
+      value={budgetPreferences.food}
+      onChange={(val) => handlePriorityChange('food', val)}
+    />
+    <PrioritySelector 
+      label="Activities"
+      value={budgetPreferences.activities}
+      onChange={(val) => handlePriorityChange('activities', val)}
+    />
+  </div>
+  
+  {budgetRange && (
+    <div className="mt-4 p-3 bg-accent rounded-lg">
+      <label className="text-sm text-muted-foreground">Typical Budget Range</label>
+      <div className="flex items-center gap-2 mt-1">
+        <EditableField 
+          value={budgetRange.min}
+          type="number"
+          prefix="$"
+          inline
+          onSave={(val) => handleBudgetChange('min', val)}
+        />
+        <span className="text-muted-foreground">to</span>
+        <EditableField 
+          value={budgetRange.max}
+          type="number"
+          prefix="$"
+          inline
+          onSave={(val) => handleBudgetChange('max', val)}
+        />
+      </div>
+    </div>
+  )}
+</ExtractedDataCard>
+
+// PrioritySelector Component
+const PrioritySelector = ({ label, value, onChange }) => (
+  <div>
+    <label className="text-sm text-muted-foreground mb-1 block">{label}</label>
+    <div className="flex gap-2">
+      {['low', 'medium', 'high'].map(priority => (
+        <button
+          key={priority}
+          onClick={() => onChange(priority)}
+          className={`flex-1 py-2 px-3 rounded-md text-sm transition-colors ${
+            value === priority
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+          }`}
+        >
+          {priority.charAt(0).toUpperCase() + priority.slice(1)}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+```
+
+### Onboarding Completion
+
+**AI Final Message:**
+```
+"Excellent! Your travel profile is complete. I've gathered all the essential information about you, your travel group, preferences, and budget. You can review and edit any details in the panel on the right.
+
+Ready to start planning your next adventure?"
+```
+
+**Completion Screen:**
+```jsx
+<div className="flex flex-col items-center justify-center p-8 text-center">
+  <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center mb-4">
+    <CheckCircleIcon className="w-12 h-12 text-primary" />
+  </div>
+  
+  <h2 className="text-2xl font-bold text-foreground mb-2 font-serif">
+    Profile Complete! 🎉
+  </h2>
+  
+  <p className="text-muted-foreground mb-6 max-w-md">
+    You've successfully built your travel profile. All your preferences and information have been saved and can be edited anytime.
+  </p>
+  
+  <div className="flex gap-3">
+    <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+      Start Planning a Trip
+    </button>
+    <button className="px-6 py-3 border border-border rounded-lg hover:bg-accent">
+      View Full Profile
+    </button>
+  </div>
+</div>
+```
+
+## Component Specifications for Phase 1
+
+### OnboardingContainer.tsx
+
+```typescript
+interface OnboardingContainerProps {
+  onComplete: () => void;
+}
+
+const OnboardingContainer: React.FC<OnboardingContainerProps> = ({ onComplete }) => {
+  const {
+    currentQuestion,
+    messages,
+    extractedData,
+    isProcessing,
+    handleUserMessage,
+    handleDataEdit,
+    nextQuestion,
+    previousQuestion
+  } = useOnboarding();
+  
+  return (
+    <div className="flex h-screen bg-background">
+      {/* Left Panel - Conversation */}
+      <div className="flex-1 flex flex-col">
+        <ProgressIndicator 
+          currentStep={currentQuestion + 1} 
+          totalSteps={6}
+          labels={QUESTION_LABELS}
+        />
+        
+        <ConversationPanel 
+          messages={messages}
+          isProcessing={isProcessing}
+        />
+        
+        <UserInput 
+          onSubmit={handleUserMessage}
+          disabled={isProcessing}
+          placeholder="Type your response..."
+        />
+      </div>
+      
+      {/* Right Panel - Extracted Data */}
+      <div className="w-96 bg-sidebar border-l border-sidebar-border overflow-y-auto">
+        <ProfileDataPanel 
+          extractedData={extractedData}
+          onEdit={handleDataEdit}
+          currentQuestion={currentQuestion}
+        />
+      </div>
+    </div>
+  );
+};
+```
+
+### ConversationPanel.tsx
+
+```typescript
+interface ConversationPanelProps {
+  messages: ConversationMessage[];
+  isProcessing: boolean;
+}
+
+const ConversationPanel: React.FC<ConversationPanelProps> = ({ 
+  messages, 
+  isProcessing 
+}) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
+  return (
+    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      {messages.map((message, idx) => (
+        message.role === 'assistant' ? (
+          <QuestionPrompt 
+            key={idx}
+            message={message.content}
+            timestamp={message.timestamp}
+            type={message.type}
+          />
+        ) : (
+          <UserMessage 
+            key={idx}
+            message={message.content}
+            timestamp={message.timestamp}
+          />
+        )
+      ))}
+      
+      {isProcessing && (
+        <div className="flex gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+            <BotIcon className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <div className="bg-card rounded-2xl rounded-tl-sm p-4 shadow-md">
+            <TypingIndicator />
+          </div>
+        </div>
+      )}
+      
+      <div ref={messagesEndRef} />
+    </div>
+  );
+};
+```
+
+### ProfileDataPanel.tsx
+
+```typescript
+interface ProfileDataPanelProps {
+  extractedData: ExtractedProfileData;
+  onEdit: (section: string, field: string, value: any) => void;
+  currentQuestion: number;
+}
+
+const ProfileDataPanel: React.FC<ProfileDataPanelProps> = ({ 
+  extractedData, 
+  onEdit,
+  currentQuestion 
+}) => {
+  return (
+    <div className="p-6 space-y-6">
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-sidebar-foreground mb-1">
+          Your Profile
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Information extracted from your responses
+        </p>
+      </div>
+      
+      {/* Contact Information */}
+      {extractedData.contactInfo && (
+        <ExtractedDataCard 
+          title="Contact Information" 
+          icon={<UserIcon className="w-5 h-5" />}
+          isActive={currentQuestion === 0}
+        >
+          <EditableField 
+            label="Email"
+            value={extractedData.contactInfo.email}
+            type="email"
+            onSave={(val) => onEdit('contactInfo', 'email', val)}
+          />
+          <EditableField 
+            label="Phone"
+            value={extractedData.contactInfo.phone}
+            type="tel"
+            onSave={(val) => onEdit('contactInfo', 'phone', val)}
+          />
+          <EditableField 
+            label="Date of Birth"
+            value={extractedData.contactInfo.dateOfBirth}
+            type="date"
+            onSave={(val) => onEdit('contactInfo', 'dateOfBirth', val)}
+          />
+        </ExtractedDataCard>
+      )}
+      
+      {/* Travel Group */}
+      {extractedData.travelGroup && (
+        <ExtractedDataCard 
+          title="Travel Group" 
+          icon={<UsersIcon className="w-5 h-5" />}
+          isActive={currentQuestion === 1}
+        >
+          <div className="mb-3">
+            <Badge variant="secondary">
+              {extractedData.travelGroup.type}
+            </Badge>
+          </div>
+          
+          {extractedData.travelGroup.members.map((member, idx) => (
+            <TravelMemberCard 
+              key={idx}
+              member={member}
+              onEdit={(field, value) => onEdit('travelGroup', `members.${idx}.${field}`, value)}
+            />
+          ))}
+        </ExtractedDataCard>
+      )}
+      
+      {/* Location */}
+      {extractedData.location && (
+        <ExtractedDataCard 
+          title="Location & Travel" 
+          icon={<MapPinIcon className="w-5 h-5" />}
+          isActive={currentQuestion === 2}
+        >
+          <LocationFields 
+            location={extractedData.location}
+            onEdit={(field, value) => onEdit('location', field, value)}
+          />
+        </ExtractedDataCard>
+      )}
+      
+      {/* Upcoming Trips */}
+      {extractedData.upcomingTrips && extractedData.upcomingTrips.length > 0 && (
+        <ExtractedDataCard 
+          title="Upcoming Trips" 
+          icon={<CalendarIcon className="w-5 h-5" />}
+          isActive={currentQuestion === 3}
+        >
+          {extractedData.upcomingTrips.map((trip, idx) => (
+            <UpcomingTripCard 
+              key={idx}
+              trip={trip}
+              onEdit={(field, value) => onEdit('upcomingTrips', `${idx}.${field}`, value)}
+            />
+          ))}
+        </ExtractedDataCard>
+      )}
+      
+      {/* Past Trips */}
+      {extractedData.pastTrips && extractedData.pastTrips.length > 0 && (
+        <ExtractedDataCard 
+          title="Last Trip" 
+          icon={<MapIcon className="w-5 h-5" />}
+          isActive={currentQuestion === 4}
+        >
+          <PastTripCard 
+            trip={extractedData.pastTrips[0]}
+            onEdit={(field, value) => onEdit('pastTrips', `0.${field}`, value)}
+          />
+        </ExtractedDataCard>
+      )}
+      
+      {/* Budget Preferences */}
+      {extractedData.budgetPreferences && (
+        <ExtractedDataCard 
+          title="Budget & Priorities" 
+          icon={<DollarSignIcon className="w-5 h-5" />}
+          isActive={currentQuestion === 5}
+        >
+          <BudgetPreferencesFields 
+            preferences={extractedData.budgetPreferences}
+            onEdit={(field, value) => onEdit('budgetPreferences', field, value)}
+          />
+        </ExtractedDataCard>
+      )}
+    </div>
+  );
+};
+```
+
+### useOnboarding Hook
+
+```typescript
+// hooks/useOnboarding.ts
+import { useState, useCallback } from 'react';
+import { useOnboardingStore } from '../store/onboardingStore';
+import { ONBOARDING_QUESTIONS } from '../constants/onboardingQuestions';
+import { extractDataFromResponse } from '../utils/dataExtraction';
+import { generateConfirmationMessage } from '../utils/mockResponses';
+import { detectDoneSignal } from '../utils/doneSignalDetection';
+
+export const useOnboarding = () => {
+  const {
+    currentQuestion,
+    messages,
+    extractedData,
+    isAwaitingConfirmation,
+    pendingExtraction,
+    addMessage,
+    setExtractedData,
+    nextQuestion,
+    setAwaitingConfirmation,
+    setPendingExtraction
+  } = useOnboardingStore();
+  
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const handleUserMessage = useCallback(async (message: string) => {
+    // Add user message to conversation
+    addMessage({
+      role: 'user',
+      content: message,
+      timestamp: new Date()
+    });
+    
+    setIsProcessing(true);
+    
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (isAwaitingConfirmation) {
+      // Handle confirmation response
+      if (message.match(/yes|correct|right|that'?s right|yep|yeah/i)) {
+        // Confirmed - move to next question
+        setAwaitingConfirmation(false);
+        setPendingExtraction(null);
+        
+        if (currentQuestion < 5) {
+          nextQuestion();
+          addMessage({
+            role: 'assistant',
+            content: ONBOARDING_QUESTIONS[currentQuestion + 1].prompt,
+            timestamp: new Date(),
+            type: 'initial'
+          });
+        } else {
+          // Onboarding complete
+          addMessage({
+            role: 'assistant',
+            content: "Excellent! Your travel profile is complete. Ready to start planning your next adventure?",
+            timestamp: new Date(),
+            type: 'completion'
+          });
+        }
+      } else {
+        // Correction needed
+        setAwaitingConfirmation(false);
+        addMessage({
+          role: 'assistant',
+          content: "No problem! Please provide the correct information.",
+          timestamp: new Date(),
+          type: 'followup'
+        });
+      }
+    } else {
+      // Extract data from response
+      const questionId = ONBOARDING_QUESTIONS[currentQuestion].id;
+      const extracted = extractDataFromResponse(questionId, message);
+      
+      // Update extracted data
+      setExtractedData(questionId, extracted);
+      
+      // Check for done signal on open-ended questions
+      const isDone = detectDoneSignal(message);
+      
+      // Generate confirmation message
+      const confirmation = generateConfirmationMessage(questionId, extracted);
+      
+      addMessage({
+        role: 'assistant',
+        content: confirmation,
+        timestamp: new Date(),
+        type: 'confirmation'
+      });
+      
+      // Check for follow-up questions
+      const followUp = ONBOARDING_QUESTIONS[currentQuestion].followUp?.(extracted);
+      if (followUp) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        addMessage({
+          role: 'assistant',
+          content: followUp,
+          timestamp: new Date(),
+          type: 'followup'
+        });
+      }
+      
+      setAwaitingConfirmation(true);
+      setPendingExtraction(extracted);
+    }
+    
+    setIsProcessing(false);
+  }, [currentQuestion, isAwaitingConfirmation, addMessage, setExtractedData, nextQuestion, setAwaitingConfirmation, setPendingExtraction]);
+  
+  const handleDataEdit = useCallback((section: string, field: string, value: any) => {
+    // Handle inline edits from the data panel
+    setExtractedData(section, { ...extractedData[section], [field]: value });
+  }, [extractedData, setExtractedData]);
+  
+  return {
+    currentQuestion,
+    messages,
+    extractedData,
+    isProcessing,
+    handleUserMessage,
+    handleDataEdit,
+    nextQuestion
+  };
+};
+```
+
+### Constants: onboardingQuestions.ts
+
+```typescript
+// constants/onboardingQuestions.ts
+export const ONBOARDING_QUESTIONS = [
+  {
+    id: 'contact',
+    step: 1,
+    label: 'Contact',
+    prompt: "Welcome! Let's start building your travel profile. First, I need to confirm your primary contact details. Please share your phone number, email address, and date of birth. This information will be used to populate your bookings."
+  },
+  {
+    id: 'travelGroup',
+    step: 2,
+    label: 'Travel Group',
+    prompt: "Tell me about your primary travel group. Is it just yourself, with a partner, or family? Please let me know the name and age of each person, including children. Don't worry, we'll build out details as we go. Let me know when you're done with your description by simply saying something like 'I'm done', 'Finished', or 'That's it'.",
+    followUp: (extracted) => {
+      const hasMinors = extracted.members?.some(m => m.isMinor);
+      if (hasMinors) {
+        const minorNames = extracted.members
+          .filter(m => m.isMinor)
+          .map(m => `${m.name} (${m.age} years old)`)
+          .join(' and ');
+        return `For the children in your family - ${minorNames} - can you let me know what school and/or school district they're in so when possible we can account for their school calendar? Or you can say 'Disregard' and come back to this later.`;
+      }
+      return null;
+    }
+  },
+  {
+    id: 'location',
+    step: 3,
+    label: 'Location',
+    prompt: "Tell me about where you live by sharing your City, State, and Zip Code. You can also give me your full address if you'd like. What airports or travel terminals do you usually travel from?"
+  },
+  {
+    id: 'upcomingTrips',
+    step: 4,
+    label: 'Upcoming Trips',
+    prompt: "Do you have any trips you'll be planning in the next year, or would like to plan? If yes, let me know when and where and the nature of the trip (business, family vacation, etc.), or give me an idea of what you had in mind if you're not sure."
+  },
+  {
+    id: 'pastTrips',
+    step: 5,
+    label: 'Last Trip',
+    prompt: "Tell me a little about your last trip or vacation. Where did you go, what did you like and not like about it? Did you have any special needs based on yourself or others you were traveling with?"
+  },
+  {
+    id: 'budgetPreferences',
+    step: 6,
+    label: 'Budget',
+    prompt: "Tell me about your budget requirements and spending preferences. Do you prefer cheaper airline seats but more budget for lodging and food? What are your priorities spending-wise? If you have a specific budget number range, please share."
+  }
+];
+
+export const QUESTION_LABELS = ONBOARDING_QUESTIONS.map(q => q.label);
+```
+
+[Rest of the PRD content remains the same - Data Model, State Management, Success Metrics, Future Enhancements, etc.]

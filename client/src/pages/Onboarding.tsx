@@ -1,20 +1,28 @@
 import { AppLayout } from '@/components/layout/AppLayout';
-import { ConversationInterface } from '@/components/onboarding/ConversationInterface';
+import { ConversationPanel } from '@/components/onboarding/ConversationPanel';
+import { ProfileDataPanel } from '@/components/onboarding/ProfileDataPanel';
+import { ProgressIndicator } from '@/components/onboarding/ProgressIndicator';
+import { useProfileStore } from '@/lib/store';
 
 export default function Onboarding() {
+  const { currentStep } = useProfileStore();
+
   return (
-    <AppLayout>
-      <div className="flex flex-col gap-6 h-full">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-serif font-bold text-foreground">Let's get to know you</h1>
-          <p className="text-muted-foreground max-w-xl">
-            Chat with our AI assistant to build your personalized travel profile. 
-            The more you share, the better your trip recommendations will be.
-          </p>
-        </div>
+    <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">
+        {/* Top Navigation / Progress */}
+        <ProgressIndicator currentStep={currentStep} />
         
-        <ConversationInterface />
-      </div>
-    </AppLayout>
+        <div className="flex-1 flex overflow-hidden">
+            {/* Left Panel: Conversation */}
+            <div className="flex-1 flex flex-col min-w-0">
+                <ConversationPanel />
+            </div>
+
+            {/* Right Panel: Extracted Data Sidebar */}
+            <div className="w-[400px] border-l border-sidebar-border bg-sidebar hidden lg:block overflow-hidden">
+                <ProfileDataPanel currentStep={currentStep} />
+            </div>
+        </div>
+    </div>
   );
 }
