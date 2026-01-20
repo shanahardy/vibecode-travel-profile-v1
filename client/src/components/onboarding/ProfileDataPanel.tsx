@@ -109,6 +109,18 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
             icon={<User className="w-4 h-4" />}
             isActive={currentStep === 0}
           >
+            <div className="flex gap-2">
+                <EditableField 
+                  label="First Name" 
+                  value={profile.contactInfo?.firstName || ''} 
+                  onSave={(val) => updateSection('contactInfo', { ...profile.contactInfo, firstName: val })}
+                />
+                <EditableField 
+                  label="Last Name" 
+                  value={profile.contactInfo?.lastName || ''} 
+                  onSave={(val) => updateSection('contactInfo', { ...profile.contactInfo, lastName: val })}
+                />
+            </div>
             <EditableField 
               label="Email" 
               value={profile.contactInfo?.email || ''} 

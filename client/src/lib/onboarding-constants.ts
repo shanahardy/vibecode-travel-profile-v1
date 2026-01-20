@@ -3,7 +3,7 @@ export const ONBOARDING_QUESTIONS = [
     id: 'contactInfo',
     step: 1,
     label: 'Contact',
-    prompt: "Welcome! Let's start building your travel profile. First, I need to confirm your primary contact details. Please share your phone number, email address, and date of birth. This information will be used to populate your bookings."
+    prompt: "Welcome! Let's start building your travel profile. First, I need to confirm your primary contact details. Please share your first and last name, phone number, email address, and date of birth. This information will be used to populate your bookings."
   },
   {
     id: 'travelGroup',

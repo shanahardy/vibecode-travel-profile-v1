@@ -56,17 +56,37 @@ const extractContactInfo = (input: string): ContactInfo => {
   // Enhanced Phone Regex: Handles (123) 456-7890, 123.456.7890, 123-456-7890, +1 123...
   const phoneRegex = /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}/;
   
-  // Enhanced Date Regex: Handles:
-  // - ISO: 1985-01-15
-  // - US: 01/15/1985, 1-15-85
-  // - Written: Jan 15, 1985; 15th January 1985; January 15th 1985
+  // Enhanced Date Regex
   const dateRegex = /(?:(?:\d{1,2}(?:st|nd|rd|th)?\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?))|(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?,?)|(?:\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})|(?:\d{4}-\d{2}-\d{2}))(?:\s+(?:19|20)\d{2})?/i;
   
   const emailMatch = input.match(emailRegex);
   const phoneMatch = input.match(phoneRegex);
   const dateMatch = input.match(dateRegex);
 
+  // Simple name extraction attempt
+  let firstName = '';
+  let lastName = '';
+  
+  // Check for "My name is First Last"
+  const namePhraseMatch = input.match(/my name is ([A-Z][a-z]+)\s+([A-Z][a-z]+)/i);
+  if (namePhraseMatch) {
+      firstName = namePhraseMatch[1];
+      lastName = namePhraseMatch[2];
+  } else {
+      // Look for capitalized words that aren't keywords
+      const ignoredWords = new Set(['My', 'I', 'The', 'A', 'An', 'Hello', 'Hi', 'Please', 'Here', 'This', 'Is', 'Email', 'Phone', 'Date']);
+      const words = input.split(/[\s,.]+/).filter(w => /^[A-Z][a-z]+$/.test(w) && !ignoredWords.has(w));
+      if (words.length >= 2) {
+          firstName = words[0];
+          lastName = words[1];
+      } else if (words.length === 1) {
+          firstName = words[0];
+      }
+  }
+
   return {
+    firstName,
+    lastName,
     email: emailMatch ? emailMatch[0].toLowerCase().trim() : '',
     phone: phoneMatch ? normalizePhone(phoneMatch[0]) : '',
     dateOfBirth: dateMatch ? normalizeDate(dateMatch[0]) : ''
@@ -328,13 +348,15 @@ export async function handleOnboardingStep(
       const info = extractContactInfo(userMessage);
       // Merge with existing profile data to allow partial corrections
       const mergedInfo = {
+        firstName: info.firstName || profile.contactInfo?.firstName || '',
+        lastName: info.lastName || profile.contactInfo?.lastName || '',
         email: info.email || profile.contactInfo?.email || '',
         phone: info.phone || profile.contactInfo?.phone || '',
         dateOfBirth: info.dateOfBirth || profile.contactInfo?.dateOfBirth || ''
       };
       
-      extractedData = { contactInfo: mergedInfo, name: profile.name || mergedInfo.email.split('@')[0] }; 
-      confirmationText = `I've got the following:\n- Email: ${mergedInfo.email || '(missing)'}\n- Phone: ${mergedInfo.phone || '(missing)'}\n- DOB: ${mergedInfo.dateOfBirth || '(missing)'}\n\nIs that correct?`;
+      extractedData = { contactInfo: mergedInfo, name: profile.name || `${mergedInfo.firstName} ${mergedInfo.lastName}`.trim() || mergedInfo.email.split('@')[0] }; 
+      confirmationText = `I've got the following:\n- Name: ${mergedInfo.firstName} ${mergedInfo.lastName}\n- Email: ${mergedInfo.email || '(missing)'}\n- Phone: ${mergedInfo.phone || '(missing)'}\n- DOB: ${mergedInfo.dateOfBirth || '(missing)'}\n\nIs that correct?`;
       break;
     }
     case 'travelGroup': {
