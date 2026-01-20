@@ -1,4 +1,9 @@
 import { useProfileStore, TravelProfile, TravelGroup } from '@/lib/store';
+import { ExtractedDataCard } from './ExtractedDataCard';
+import { EditableField } from './EditableField';
+import { User, Users, MapPin, Calendar, Map, DollarSign, Plus, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 // Helper to determine group type based on composition
 const determineGroupType = (members: any[]): TravelGroup['type'] => {
