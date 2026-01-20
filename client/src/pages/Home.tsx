@@ -4,6 +4,7 @@ import { Link } from 'wouter';
 import { ArrowRight, Compass, Calendar, Plus, User, Sparkles } from 'lucide-react';
 import { useProfileStore } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
+import tropicalImage from '@assets/generated_images/tropical_beach_vacation_paradise.png';
 
 export default function Home() {
   const { profile } = useProfileStore();
@@ -15,7 +16,13 @@ export default function Home() {
       <div className="space-y-12 py-8">
         {/* Onboarding CTA & Summary Section */}
         <div className="relative rounded-3xl overflow-hidden bg-sidebar text-sidebar-foreground p-8 md:p-12 shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+          {/* Background Image with Overlay */}
+          <div className="absolute inset-0 z-0">
+             <img src={tropicalImage} alt="Tropical Vacation" className="w-full h-full object-cover opacity-25" />
+             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-transparent/50"></div>
+          </div>
+
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none relative z-10"></div>
           
           <div className="relative z-10 max-w-3xl space-y-6">
             {!hasProfile ? (
