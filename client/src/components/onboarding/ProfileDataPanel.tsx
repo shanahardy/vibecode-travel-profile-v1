@@ -98,8 +98,22 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
                 <Badge variant="secondary" className="uppercase text-[10px] tracking-wider">{profile.travelGroup?.type || 'Not Set'}</Badge>
              </div>
              {profile.travelGroup?.members.map((member, idx) => (
-                <div key={idx} className="bg-muted/40 p-2 rounded-lg mb-2 text-sm border border-border/50">
-                  <div className="flex gap-2">
+                <div key={idx} className="bg-muted/40 p-2 rounded-lg mb-2 text-sm border border-border/50 group relative">
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                            const newMembers = profile.travelGroup?.members.filter((_, i) => i !== idx) || [];
+                            const newType = determineGroupType(newMembers);
+                            updateSection('travelGroup', { ...(profile.travelGroup || { type: 'group' }), members: newMembers, type: newType });
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                  </div>
+                  <div className="flex gap-2 pr-6">
                      <EditableField 
                         label="Name" 
                         value={member.name} 
