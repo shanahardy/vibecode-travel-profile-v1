@@ -79,8 +79,9 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-              <RefreshCcw className="h-4 w-4" />
+            <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive">
+              <RefreshCcw className="h-3.5 w-3.5 mr-2" />
+              Reset Profile
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
