@@ -1,9 +1,17 @@
-import { useProfileStore, TravelProfile } from '@/lib/store';
-import { ExtractedDataCard } from './ExtractedDataCard';
-import { EditableField } from './EditableField';
-import { User, Users, MapPin, Calendar, Map, DollarSign, Plus, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useProfileStore, TravelProfile, TravelGroup } from '@/lib/store';
+
+// Helper to determine group type based on composition
+const determineGroupType = (members: any[]): TravelGroup['type'] => {
+  if (members.length === 1) return 'solo';
+  
+  const hasMinors = members.some(m => m.isMinor || m.age < 18);
+  if (hasMinors) return 'family';
+  
+  const adults = members.filter(m => !m.isMinor && m.age >= 18);
+  if (adults.length === 2 && members.length === 2) return 'partner';
+  
+  return 'group';
+};
 
 interface ProfileDataPanelProps {
   currentStep: number;
@@ -21,14 +29,22 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
     
     // Recalculate isMinor if age changed
     if (field === 'age') {
-        newMembers[idx].isMinor = parseInt(value) < 18;
+        const age = parseInt(value);
+        newMembers[idx].isMinor = age < 18;
         // If no longer minor, remove school info
         if (!newMembers[idx].isMinor) {
             newMembers[idx].schoolInfo = undefined;
         }
     }
 
-    updateSection('travelGroup', { ...profile.travelGroup, members: newMembers });
+    // Update group type based on new composition
+    const newType = determineGroupType(newMembers);
+
+    updateSection('travelGroup', { 
+        ...profile.travelGroup, 
+        members: newMembers,
+        type: newType
+    });
   };
 
   const handleTripUpdate = (idx: number, field: string, value: any) => {
@@ -117,7 +133,8 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
              )}
              <Button variant="outline" size="sm" className="w-full border-dashed text-muted-foreground mt-2" onClick={() => {
                 const newMembers = [...(profile.travelGroup?.members || []), { name: 'New Member', age: 30, isMinor: false }];
-                updateSection('travelGroup', { ...(profile.travelGroup || { type: 'group' }), members: newMembers });
+                const newType = determineGroupType(newMembers);
+                updateSection('travelGroup', { ...(profile.travelGroup || { type: 'group' }), members: newMembers, type: newType });
              }}>
                 <Plus className="w-3 h-3 mr-2" /> Add Member
              </Button>
