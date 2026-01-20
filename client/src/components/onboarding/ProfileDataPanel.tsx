@@ -15,7 +15,19 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
   const handleMemberUpdate = (idx: number, field: string, value: any) => {
     if (!profile.travelGroup) return;
     const newMembers = [...profile.travelGroup.members];
+    
+    // Update the field
     newMembers[idx] = { ...newMembers[idx], [field]: value };
+    
+    // Recalculate isMinor if age changed
+    if (field === 'age') {
+        newMembers[idx].isMinor = parseInt(value) < 18;
+        // If no longer minor, remove school info
+        if (!newMembers[idx].isMinor) {
+            newMembers[idx].schoolInfo = undefined;
+        }
+    }
+
     updateSection('travelGroup', { ...profile.travelGroup, members: newMembers });
   };
 
