@@ -136,7 +136,7 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
                   {member.isMinor && (
                      <div className="mt-2 border-t border-border/50 pt-2">
                         <EditableField 
-                          label="School District" 
+                          label="School / District" 
                           value={member.schoolInfo?.schoolName || ''} 
                           placeholder="Optional"
                           onSave={(val) => handleMemberUpdate(idx, 'schoolInfo', { schoolName: val })}
