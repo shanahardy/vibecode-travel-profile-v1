@@ -1,9 +1,20 @@
 import { useProfileStore, TravelProfile, TravelGroup } from '@/lib/store';
 import { ExtractedDataCard } from './ExtractedDataCard';
 import { EditableField } from './EditableField';
-import { User, Users, MapPin, Calendar, Map, DollarSign, Plus, Trash2 } from 'lucide-react';
+import { User, Users, MapPin, Calendar, Map, DollarSign, Plus, Trash2, RefreshCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Helper to determine group type based on composition
 const determineGroupType = (members: any[]): TravelGroup['type'] => {
@@ -23,7 +34,7 @@ interface ProfileDataPanelProps {
 }
 
 export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
-  const { profile, updateSection } = useProfileStore();
+  const { profile, updateSection, resetConversation } = useProfileStore();
 
   const handleMemberUpdate = (idx: number, field: string, value: any) => {
     if (!profile.travelGroup) return;
@@ -61,9 +72,32 @@ export function ProfileDataPanel({ currentStep }: ProfileDataPanelProps) {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-6 border-b border-sidebar-border">
-        <h2 className="text-lg font-bold font-serif">Your Profile</h2>
-        <p className="text-xs text-muted-foreground">Extracted from conversation</p>
+      <div className="p-6 border-b border-sidebar-border flex items-center justify-between">
+        <div>
+           <h2 className="text-lg font-bold font-serif">Your Profile</h2>
+           <p className="text-xs text-muted-foreground">Extracted from conversation</p>
+        </div>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+              <RefreshCcw className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reset Profile?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will delete all your travel profile data, including family members, trips, and preferences. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={resetConversation} className="bg-destructive hover:bg-destructive/90">
+                Reset Data
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
