@@ -1,12 +1,14 @@
 import { useRef, useEffect, useState } from 'react';
 import { useProfileStore } from '@/lib/store';
 import { handleOnboardingStep } from '@/lib/mock-ai';
-import { Send, Bot, Loader2, RefreshCcw } from 'lucide-react';
+import { Send, Bot, Loader2, RefreshCcw, Mic, Keyboard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ONBOARDING_QUESTIONS } from '@/lib/onboarding-constants';
+import { VoiceInput } from './VoiceInput';
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export function ConversationPanel() {
   const { 
@@ -23,6 +25,7 @@ export function ConversationPanel() {
   } = useProfileStore();
   
   const [inputValue, setInputValue] = useState('');
+  const [inputMode, setInputMode] = useState<'text' | 'voice'>('text');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Initialize first message if empty
@@ -40,20 +43,20 @@ export function ConversationPanel() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isLoading]);
+  }, [messages, isLoading, inputMode]);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+  const handleSendMessage = async (overrideText?: string) => {
+    const textToSend = overrideText || inputValue;
+    if (!textToSend.trim()) return;
 
-    const userMsg = inputValue;
-    setInputValue('');
+    if (!overrideText) setInputValue('');
     
-    addMessage({ role: 'user', content: userMsg });
+    addMessage({ role: 'user', content: textToSend });
     setLoading(true);
 
     try {
       const response = await handleOnboardingStep(
-        userMsg, 
+        textToSend, 
         currentStep, 
         isAwaitingConfirmation, 
         profile
@@ -90,137 +93,164 @@ export function ConversationPanel() {
     }
   };
 
+  const lastAssistantMessage = messages.slice().reverse().find(m => m.role === 'assistant')?.content;
+
   return (
     <div className="flex flex-col h-full bg-background relative">
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6" ref={scrollRef}>
-        <AnimatePresence initial={false}>
-          {messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={cn(
-                "flex w-full",
-                msg.role === 'user' ? "justify-end" : "justify-start"
-              )}
-            >
-              <div
-                className={cn(
-                  "max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-sm",
-                  msg.role === 'user'
-                    ? "bg-primary text-primary-foreground rounded-br-none"
-                    : "bg-card border border-border text-foreground rounded-bl-none",
-                  msg.type === 'confirmation' && "border-primary/50 bg-primary/5"
-                )}
-              >
-                {msg.type === 'confirmation' && (
-                  <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs uppercase tracking-wide">
-                     <RefreshCcw className="w-3 h-3" /> Confirmation Needed
-                  </div>
-                )}
-                <div className="whitespace-pre-wrap">{msg.content}</div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        
-        {isLoading && (
-           <motion.div
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           className="flex justify-start w-full"
-         >
-           <div className="bg-card border border-border rounded-2xl rounded-bl-none px-5 py-4 shadow-sm flex items-center gap-2">
-             <Loader2 className="w-4 h-4 animate-spin text-primary" />
-             <span className="text-xs text-muted-foreground">Thinking...</span>
-           </div>
-         </motion.div>
-        )}
+      {/* Header / Toggle */}
+      <div className="p-4 border-b border-border flex justify-center bg-muted/20">
+        <ToggleGroup type="single" value={inputMode} onValueChange={(val) => val && setInputMode(val as 'text' | 'voice')} className="bg-background border border-border rounded-full p-1 shadow-sm">
+            <ToggleGroupItem value="text" className="rounded-full px-4 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                <Keyboard className="w-4 h-4 mr-2" /> Text Chat
+            </ToggleGroupItem>
+            <ToggleGroupItem value="voice" className="rounded-full px-4 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                <Mic className="w-4 h-4 mr-2" /> Voice Mode
+            </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
-      {/* Input Area */}
-      <div className="p-4 bg-background border-t border-border">
-        <div className="max-w-4xl mx-auto w-full relative">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }}
-            className="flex gap-2 items-center relative"
-          >
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder={isAwaitingConfirmation ? "Confirm with 'Yes' or provide corrections..." : "Type your answer..."}
-              className="flex-1 pr-12 h-14 rounded-full border-muted-foreground/20 focus-visible:ring-primary/20 shadow-sm text-base pl-6"
-              disabled={isLoading}
-              autoFocus
+      {inputMode === 'voice' ? (
+        <div className="flex-1 overflow-hidden">
+            <VoiceInput 
+                onTranscript={(text) => setInputValue(text)} 
+                onSend={() => handleSendMessage(inputValue)}
+                lastMessage={lastAssistantMessage}
+                isProcessing={isLoading}
             />
-            
-            <div className="absolute right-2 top-2 flex gap-1">
-                <Button 
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-10 px-3 rounded-full text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-                    onClick={() => {
-                        // Skip Logic
-                        const nextStep = currentStep + 1;
-                        // Add user skip message
-                        addMessage({ role: 'user', content: "Skip and fill out later" });
-                        
-                        // Clear confirmation if pending
-                        if (isAwaitingConfirmation) {
-                            setAwaitingConfirmation(false);
-                        }
-
-                        if (nextStep < ONBOARDING_QUESTIONS.length) {
-                            setStep(nextStep);
-                            // Simulate AI delay for natural feel
-                            setLoading(true);
-                            setTimeout(() => {
-                                addMessage({ 
-                                    role: 'assistant', 
-                                    content: `No problem, we can come back to that. ${ONBOARDING_QUESTIONS[nextStep].prompt}`, 
-                                    type: 'text' 
-                                });
-                                setLoading(false);
-                            }, 600);
-                        } else {
-                            // Completion
-                            setLoading(true);
-                            setTimeout(() => {
-                                addMessage({ 
-                                    role: 'assistant', 
-                                    content: "Alright! That covers the basics for now. You can fill in the rest of the details in your profile whenever you're ready.", 
-                                    type: 'completion' 
-                                });
-                                setLoading(false);
-                            }, 600);
-                        }
-                    }}
-                    disabled={isLoading}
-                >
-                    Skip
-                </Button>
-                <Button 
-                type="submit" 
-                size="icon" 
-                className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 transition-all shadow-md"
-                disabled={!inputValue.trim() || isLoading}
-                >
-                <Send className="w-4 h-4" />
-                </Button>
-            </div>
-          </form>
-          <div className="text-center mt-2">
-            <span className="text-[10px] text-muted-foreground">
-               {isAwaitingConfirmation ? "Please confirm the details above to proceed." : "Tip: You can say \"I'm done\" when you've finished answering."}
-            </span>
-          </div>
         </div>
-      </div>
+      ) : (
+        <>
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6" ref={scrollRef}>
+                <AnimatePresence initial={false}>
+                {messages.map((msg) => (
+                    <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={cn(
+                        "flex w-full",
+                        msg.role === 'user' ? "justify-end" : "justify-start"
+                    )}
+                    >
+                    <div
+                        className={cn(
+                        "max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-sm",
+                        msg.role === 'user'
+                            ? "bg-primary text-primary-foreground rounded-br-none"
+                            : "bg-card border border-border text-foreground rounded-bl-none",
+                        msg.type === 'confirmation' && "border-primary/50 bg-primary/5"
+                        )}
+                    >
+                        {msg.type === 'confirmation' && (
+                        <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs uppercase tracking-wide">
+                            <RefreshCcw className="w-3 h-3" /> Confirmation Needed
+                        </div>
+                        )}
+                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                    </div>
+                    </motion.div>
+                ))}
+                </AnimatePresence>
+                
+                {isLoading && (
+                <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start w-full"
+                >
+                <div className="bg-card border border-border rounded-2xl rounded-bl-none px-5 py-4 shadow-sm flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <span className="text-xs text-muted-foreground">Thinking...</span>
+                </div>
+                </motion.div>
+                )}
+            </div>
+
+            {/* Input Area */}
+            <div className="p-4 bg-background border-t border-border">
+                <div className="max-w-4xl mx-auto w-full relative">
+                <form
+                    onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                    }}
+                    className="flex gap-2 items-center relative"
+                >
+                    <Input
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder={isAwaitingConfirmation ? "Confirm with 'Yes' or provide corrections..." : "Type your answer..."}
+                    className="flex-1 pr-12 h-14 rounded-full border-muted-foreground/20 focus-visible:ring-primary/20 shadow-sm text-base pl-6"
+                    disabled={isLoading}
+                    autoFocus
+                    />
+                    
+                    <div className="absolute right-2 top-2 flex gap-1">
+                        <Button 
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-10 px-3 rounded-full text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                            onClick={() => {
+                                // Skip Logic
+                                const nextStep = currentStep + 1;
+                                // Add user skip message
+                                addMessage({ role: 'user', content: "Skip and fill out later" });
+                                
+                                // Clear confirmation if pending
+                                if (isAwaitingConfirmation) {
+                                    setAwaitingConfirmation(false);
+                                }
+
+                                if (nextStep < ONBOARDING_QUESTIONS.length) {
+                                    setStep(nextStep);
+                                    // Simulate AI delay for natural feel
+                                    setLoading(true);
+                                    setTimeout(() => {
+                                        addMessage({ 
+                                            role: 'assistant', 
+                                            content: `No problem, we can come back to that. ${ONBOARDING_QUESTIONS[nextStep].prompt}`, 
+                                            type: 'text' 
+                                        });
+                                        setLoading(false);
+                                    }, 600);
+                                } else {
+                                    // Completion
+                                    setLoading(true);
+                                    setTimeout(() => {
+                                        addMessage({ 
+                                            role: 'assistant', 
+                                            content: "Alright! That covers the basics for now. You can fill in the rest of the details in your profile whenever you're ready.", 
+                                            type: 'completion' 
+                                        });
+                                        setLoading(false);
+                                    }, 600);
+                                }
+                            }}
+                            disabled={isLoading}
+                        >
+                            Skip
+                        </Button>
+                        <Button 
+                        type="submit" 
+                        size="icon" 
+                        className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 transition-all shadow-md"
+                        disabled={!inputValue.trim() || isLoading}
+                        >
+                        <Send className="w-4 h-4" />
+                        </Button>
+                    </div>
+                </form>
+                <div className="text-center mt-2">
+                    <span className="text-[10px] text-muted-foreground">
+                    {isAwaitingConfirmation ? "Please confirm the details above to proceed." : "Tip: You can say \"I'm done\" when you've finished answering."}
+                    </span>
+                </div>
+                </div>
+            </div>
+        </>
+      )}
     </div>
   );
 }
