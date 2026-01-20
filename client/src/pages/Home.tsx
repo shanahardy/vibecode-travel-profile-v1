@@ -1,34 +1,88 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
-import { ArrowRight, Compass, Calendar, Plus } from 'lucide-react';
+import { ArrowRight, Compass, Calendar, Plus, User, Sparkles } from 'lucide-react';
 import { useProfileStore } from '@/lib/store';
+import { Badge } from '@/components/ui/badge';
 
 export default function Home() {
   const { profile } = useProfileStore();
+  const hasProfile = !!profile.name;
+  const tripCount = profile.upcomingTrips?.length || 0;
 
   return (
     <AppLayout>
       <div className="space-y-12 py-8">
-        {/* Hero Section */}
+        {/* Onboarding CTA & Summary Section */}
         <div className="relative rounded-3xl overflow-hidden bg-sidebar text-sidebar-foreground p-8 md:p-12 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
           
-          <div className="relative z-10 max-w-2xl space-y-6">
-            <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight">
-              {profile.name ? `Welcome back, ${profile.name.split(' ')[0]}` : "Design your dream trip"}
-            </h1>
-            <p className="text-lg text-sidebar-foreground/80 leading-relaxed">
-              Your personal AI travel concierge is ready to help you plan your next adventure using your unique travel DNA.
-            </p>
-            <div className="flex gap-4 pt-4">
-              <Link href={profile.name ? "/plan" : "/onboarding"}>
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-12 text-base shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95">
-                  {profile.name ? "Plan a New Trip" : "Build Your Profile"}
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-            </div>
+          <div className="relative z-10 max-w-3xl space-y-6">
+            {!hasProfile ? (
+                <>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium uppercase tracking-wider mb-2">
+                        <Sparkles className="w-3 h-3" />
+                        Start Here
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight">
+                        Design your dream trip
+                    </h1>
+                    <p className="text-lg text-sidebar-foreground/80 leading-relaxed max-w-xl">
+                        Your personal AI travel concierge is ready. Tell us about your travel style, and we'll handle the rest.
+                    </p>
+                    <div className="flex gap-4 pt-4">
+                        <Link href="/onboarding">
+                            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-12 text-base shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95">
+                                Get Started
+                                <ArrowRight className="ml-2 w-5 h-5" />
+                            </Button>
+                        </Link>
+                    </div>
+                </>
+            ) : (
+                <>
+                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium uppercase tracking-wider mb-2">
+                        <User className="w-3 h-3" />
+                        Travel Profile Active
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight">
+                        Welcome back, {profile.name.split(' ')[0]}
+                    </h1>
+                    <div className="flex flex-wrap gap-4 py-2">
+                         {profile.location?.city && (
+                             <Badge variant="outline" className="bg-background/50 backdrop-blur border-primary/20 text-foreground py-1.5 px-3">
+                                 📍 Based in {profile.location.city}
+                             </Badge>
+                         )}
+                         {tripCount > 0 && (
+                             <Badge variant="outline" className="bg-background/50 backdrop-blur border-primary/20 text-foreground py-1.5 px-3">
+                                 ✈️ {tripCount} Trip{tripCount !== 1 ? 's' : ''} Planned
+                             </Badge>
+                         )}
+                         {profile.travelGroup?.type && (
+                             <Badge variant="outline" className="bg-background/50 backdrop-blur border-primary/20 text-foreground py-1.5 px-3 capitalize">
+                                 👥 {profile.travelGroup.type} Traveler
+                             </Badge>
+                         )}
+                    </div>
+                    <p className="text-lg text-sidebar-foreground/80 leading-relaxed max-w-xl">
+                        Your profile is set up and ready. Continue planning your upcoming adventures or refine your preferences.
+                    </p>
+                    <div className="flex gap-4 pt-4">
+                        <Link href="/plan">
+                            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-12 text-base shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95">
+                                Plan a New Trip
+                                <ArrowRight className="ml-2 w-5 h-5" />
+                            </Button>
+                        </Link>
+                        <Link href="/onboarding">
+                             <Button variant="outline" size="lg" className="rounded-full px-8 h-12 text-base bg-background/50 backdrop-blur border-primary/20 hover:bg-background/80">
+                                Update Profile
+                            </Button>
+                        </Link>
+                    </div>
+                </>
+            )}
           </div>
         </div>
 
@@ -41,7 +95,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Link href="/onboarding">
-              <div className="group cursor-pointer rounded-2xl border border-border bg-card p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 relative overflow-hidden">
+              <div className="group cursor-pointer rounded-2xl border border-border bg-card p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 relative overflow-hidden h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <UserIcon className="w-6 h-6" />
@@ -51,21 +105,28 @@ export default function Home() {
               </div>
             </Link>
 
-            <div className="group cursor-not-allowed opacity-60 rounded-2xl border border-border bg-card p-6 relative overflow-hidden">
-               <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4 text-secondary-foreground">
-                  <Calendar className="w-6 h-6" />
+            <Link href="/plan">
+                <div className="group cursor-pointer rounded-2xl border border-border bg-card p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 relative overflow-hidden h-full">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4 text-secondary-foreground group-hover:bg-secondary group-hover:text-secondary-foreground transition-colors">
+                        <Calendar className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">Upcoming Trips</h3>
+                    <p className="text-muted-foreground text-sm">
+                        {tripCount > 0 ? `Manage your ${tripCount} upcoming adventure${tripCount !== 1 ? 's' : ''}.` : "You have no upcoming trips planned yet."}
+                    </p>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Upcoming Trips</h3>
-                <p className="text-muted-foreground text-sm">You have no upcoming trips planned yet.</p>
-            </div>
+            </Link>
 
-            <div className="group cursor-pointer rounded-2xl border border-dashed border-border bg-muted/30 p-6 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors">
-                <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mb-4 shadow-sm text-primary">
-                  <Plus className="w-8 h-8" />
+            <Link href="/plan">
+                <div className="group cursor-pointer rounded-2xl border border-dashed border-border bg-muted/30 p-6 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors h-full">
+                    <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mb-4 shadow-sm text-primary group-hover:scale-110 transition-transform">
+                        <Plus className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-lg font-semibold">Create New Itinerary</h3>
+                    <p className="text-muted-foreground text-xs mt-2">Start planning from scratch</p>
                 </div>
-                <h3 className="text-lg font-semibold">Create New Itinerary</h3>
-                <p className="text-muted-foreground text-xs mt-2">Start planning from scratch</p>
-            </div>
+            </Link>
           </div>
         </div>
       </div>
