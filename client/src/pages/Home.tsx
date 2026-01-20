@@ -18,7 +18,7 @@ export default function Home() {
         <div className="relative rounded-3xl overflow-hidden bg-sidebar text-sidebar-foreground p-8 md:p-12 shadow-2xl">
           {/* Background Image with Overlay */}
           <div className="absolute inset-0 z-0">
-             <img src={tropicalImage} alt="Tropical Vacation" className="w-full h-full object-cover opacity-25" />
+             <img src={tropicalImage} alt="Tropical Vacation" className="w-full h-full object-cover opacity-40" />
              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-transparent/50"></div>
           </div>
 
