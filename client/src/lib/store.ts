@@ -118,10 +118,17 @@ export const useProfileStore = create<ProfileState>()(
         interests: [],
         travelCompanions: '',
         homeAirport: '',
+        travelGroup: {
+            type: 'family',
+            members: [
+                { name: 'Traveler', age: 35, isMinor: false },
+                { name: 'JD', age: 13, isMinor: true, schoolInfo: { schoolName: '' } }
+            ]
+        }
       },
       messages: [],
       isLoading: false,
-      currentStep: 0,
+      currentStep: 1, // Start at step 1 to show the group immediately
       isAwaitingConfirmation: false,
 
       updateProfile: (updates) =>
@@ -164,11 +171,18 @@ export const useProfileStore = create<ProfileState>()(
             interests: [],
             travelCompanions: '',
             homeAirport: '',
+            travelGroup: {
+                type: 'family',
+                members: [
+                    { name: 'Traveler', age: 35, isMinor: false },
+                    { name: 'JD', age: 13, isMinor: true, schoolInfo: { schoolName: '' } }
+                ]
+            }
           },
         }),
     }),
     {
-      name: 'travel-profile-storage-v2',
+      name: 'travel-profile-storage-v3',
     }
   )
 );
