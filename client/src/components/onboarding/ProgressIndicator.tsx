@@ -38,12 +38,12 @@ export function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
                 Save & Exit
             </Button>
         </Link>
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-             <span className="flex items-center gap-1 opacity-70">
-                <MousePointerClick className="w-3 h-3" />
-                Click steps to jump
+        <div className="flex items-center gap-4 text-xs">
+             <span className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary font-medium rounded-full border border-primary/20">
+                <MousePointerClick className="w-3.5 h-3.5" />
+                Click steps to update
              </span>
-            <span className="flex items-center gap-1 opacity-70 animate-pulse">
+            <span className="flex items-center gap-1 text-muted-foreground opacity-70 animate-pulse">
                 <Save className="w-3 h-3" />
                 Auto-saving
             </span>
