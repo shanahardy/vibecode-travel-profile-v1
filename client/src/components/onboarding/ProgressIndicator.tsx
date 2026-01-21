@@ -1,5 +1,5 @@
 import { ONBOARDING_QUESTIONS } from "@/lib/onboarding-constants";
-import { Check, ChevronLeft, Save } from "lucide-react";
+import { Check, ChevronLeft, Save, MousePointerClick } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,11 @@ export function ProgressIndicator({ currentStep }: ProgressIndicatorProps) {
                 Save & Exit
             </Button>
         </Link>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+             <span className="flex items-center gap-1 opacity-70">
+                <MousePointerClick className="w-3 h-3" />
+                Click steps to jump
+             </span>
             <span className="flex items-center gap-1 opacity-70 animate-pulse">
                 <Save className="w-3 h-3" />
                 Auto-saving
