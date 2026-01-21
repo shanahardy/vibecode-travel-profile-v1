@@ -1,10 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
-import { ArrowRight, Mic, Shield, Globe, Sparkles, Check, Play } from 'lucide-react';
+import { ArrowRight, Mic, Shield, Globe, Sparkles, Check, Play, UserCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import tropicalImage from '@assets/generated_images/tropical_beach_vacation_paradise.png';
+import { useProfileStore } from '@/lib/store';
 
 export default function Landing() {
+  const { restoreDemoProfile } = useProfileStore();
+
+  const handleDemoLogin = () => {
+    restoreDemoProfile();
+    // Force reload/navigation to dashboard
+    window.location.href = "/";
+  };
+
   return (
     <div className="flex flex-col min-h-screen font-sans bg-background text-foreground">
         {/* Navigation */}
@@ -17,6 +26,14 @@ export default function Landing() {
                     TraveLuxe
                 </div>
                 <div className="flex items-center gap-4">
+                     <Button 
+                        variant="ghost" 
+                        className="font-medium hidden sm:flex text-muted-foreground hover:text-primary"
+                        onClick={handleDemoLogin}
+                     >
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Load Demo Profile
+                     </Button>
                     <Link href="/onboarding">
                          <Button variant="ghost" className="font-medium hidden sm:flex">Log In</Button>
                     </Link>

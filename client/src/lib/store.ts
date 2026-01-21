@@ -106,6 +106,7 @@ interface ProfileState {
   setStep: (step: number) => void;
   setAwaitingConfirmation: (awaiting: boolean) => void;
   resetConversation: () => void;
+  restoreDemoProfile: () => void;
 }
 
 export const useProfileStore = create<ProfileState>()(
@@ -182,6 +183,96 @@ export const useProfileStore = create<ProfileState>()(
             }
           },
         }),
+
+      restoreDemoProfile: () => 
+        set({
+            currentStep: 10,
+            isAwaitingConfirmation: false,
+            messages: [
+                { id: '1', role: 'assistant', content: "Welcome back! I've restored your travel profile. Ready to plan your next trip?", timestamp: Date.now(), type: 'text' }
+            ],
+            profile: {
+                name: 'Alex Johnson',
+                contactInfo: {
+                    firstName: 'Alex',
+                    lastName: 'Johnson',
+                    email: 'alex.johnson@example.com',
+                    phone: '+1 (555) 123-4567',
+                    dateOfBirth: '1985-06-15'
+                },
+                travelStyle: ['Relaxation', 'Adventure'],
+                budget: 'luxury',
+                preferredDestinations: ['Bora Bora', 'Kyoto', 'Santorini'],
+                dietaryRestrictions: [],
+                interests: ['Photography', 'Hiking', 'Food'],
+                travelCompanions: 'Family',
+                homeAirport: 'SFO',
+                travelGroup: {
+                    type: 'family',
+                    members: [
+                        { name: 'Alex', age: 38, isMinor: false },
+                        { name: 'Sarah', age: 36, isMinor: false },
+                        { name: 'Leo', age: 10, isMinor: true, schoolInfo: { schoolName: 'Lincoln Elementary' } },
+                        { name: 'Mia', age: 8, isMinor: true, schoolInfo: { schoolName: 'Lincoln Elementary' } }
+                    ]
+                },
+                location: {
+                    city: 'San Francisco',
+                    state: 'CA',
+                    zipCode: '94114',
+                    preferredAirports: ['SFO', 'OAK'],
+                    preferredTerminals: []
+                },
+                budgetPreferences: {
+                    priorityCategories: {
+                        flights: 'high',
+                        lodging: 'high',
+                        food: 'medium',
+                        activities: 'medium'
+                    },
+                    budgetRange: {
+                        min: 3000,
+                        max: 8000,
+                        currency: 'USD'
+                    },
+                    notes: 'Prefer direct flights and boutique hotels.'
+                },
+                upcomingTrips: [
+                    {
+                        destination: 'Bora Bora',
+                        purpose: 'vacation',
+                        timeframe: {
+                            type: 'specific',
+                            description: 'Jun 12 - Jun 18, 2026',
+                            startDate: '2026-06-12T00:00:00.000Z',
+                            endDate: '2026-06-18T00:00:00.000Z'
+                        },
+                        notes: 'Anniversary trip, overwater bungalow required.'
+                    },
+                    {
+                        destination: 'Kyoto, Japan',
+                        purpose: 'vacation',
+                        timeframe: {
+                            type: 'flexible',
+                            description: 'Oct 10 - Oct 20, 2026',
+                            startDate: '2026-10-10T00:00:00.000Z',
+                            endDate: '2026-10-20T00:00:00.000Z'
+                        },
+                        notes: 'Fall foliage season.'
+                    }
+                ],
+                pastTrips: [
+                    {
+                        destination: 'Maui, Hawaii',
+                        date: 'Dec 2024',
+                        summary: 'Relaxing family beach vacation with some hiking.',
+                        likes: ['The Four Seasons Resort', 'Road to Hana', 'Snorkeling at Molokini'],
+                        dislikes: ['Crowds at Lahaina', 'Long flight delay'],
+                        specialNeeds: ['Kid-friendly dining']
+                    }
+                ]
+            }
+        })
     }),
     {
       name: 'travel-profile-storage-v3',
