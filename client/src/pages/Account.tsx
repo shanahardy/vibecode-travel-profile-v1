@@ -53,6 +53,26 @@ export default function Account() {
                         </Button>
                     </CardContent>
                 </Card>
+
+                {/* Danger Zone */}
+                <Card className="border-red-200 bg-red-50 mt-4">
+                    <CardContent className="p-4">
+                        <h4 className="font-bold text-red-800 text-sm mb-2">Danger Zone</h4>
+                        <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            className="w-full justify-start"
+                            onClick={() => {
+                                if (window.confirm("Are you sure you want to delete your profile? This action cannot be undone.")) {
+                                    useProfileStore.getState().resetConversation();
+                                    window.location.href = "/";
+                                }
+                            }}
+                        >
+                            <LogOut className="mr-2 h-4 w-4" /> Reset Profile Data
+                        </Button>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Main Settings Content */}
