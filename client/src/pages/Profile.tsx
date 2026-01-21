@@ -1,5 +1,6 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useProfileStore } from '@/lib/store';
+import { Link } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plane, Wallet, Users, Utensils, Heart, MapPin, Calendar, Mail, Phone, Map } from 'lucide-react';
@@ -147,16 +148,18 @@ export default function Profile() {
                {profile.upcomingTrips && profile.upcomingTrips.length > 0 ? (
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {profile.upcomingTrips.map((trip, i) => (
-                       <div key={i} className="p-4 rounded-lg border border-border bg-card shadow-sm flex flex-col gap-2">
-                          <div className="flex justify-between items-start">
-                             <h4 className="font-bold text-lg">{trip.destination}</h4>
-                             <Badge>{trip.purpose}</Badge>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                             <Calendar className="w-4 h-4" />
-                             {trip.timeframe.description}
-                          </div>
-                       </div>
+                       <Link key={i} href={`/trip/${i}`}>
+                           <div className="p-4 rounded-lg border border-border bg-card shadow-sm flex flex-col gap-2 hover:border-primary/50 transition-colors cursor-pointer group">
+                              <div className="flex justify-between items-start">
+                                 <h4 className="font-bold text-lg group-hover:text-primary transition-colors">{trip.destination}</h4>
+                                 <Badge>{trip.purpose}</Badge>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                 <Calendar className="w-4 h-4" />
+                                 {trip.timeframe.description}
+                              </div>
+                           </div>
+                       </Link>
                     ))}
                  </div>
                ) : <span className="text-muted-foreground italic">No upcoming trips planned</span>}

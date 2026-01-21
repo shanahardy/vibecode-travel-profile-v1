@@ -9,6 +9,7 @@ import Onboarding from "@/pages/Onboarding";
 import Profile from "@/pages/Profile";
 import Account from "@/pages/Account";
 import PlanTrip from "@/pages/PlanTrip";
+import TripDetails from "@/pages/TripDetails";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/account" component={Account} />
       <Route path="/plan" component={PlanTrip} />
+      <Route path="/trip/:id" component={TripDetails} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

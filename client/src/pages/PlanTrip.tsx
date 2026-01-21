@@ -183,7 +183,9 @@ export default function PlanTrip() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                                                    <DropdownMenuItem>View Itinerary</DropdownMenuItem>
+                                                    <Link href={`/trip/${idx}`}>
+                                                        <DropdownMenuItem className="cursor-pointer">View Itinerary</DropdownMenuItem>
+                                                    </Link>
                                                     <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -262,9 +264,11 @@ export default function PlanTrip() {
                                         </div>
                                     </CardContent>
                                     <CardFooter className="pt-2 border-t bg-muted/5">
-                                        <Button variant="ghost" size="sm" className="ml-auto text-primary hover:text-primary hover:bg-primary/10 group-hover:pr-2 transition-all">
-                                            Continue Planning <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
-                                        </Button>
+                                        <Link href={`/trip/${idx}`} className="ml-auto">
+                                            <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 group-hover:pr-2 transition-all">
+                                                View Itinerary <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
+                                            </Button>
+                                        </Link>
                                     </CardFooter>
                                 </Card>
                             );
