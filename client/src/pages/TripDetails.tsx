@@ -21,10 +21,20 @@ import {
   Sun,
   CloudRain,
   AlertTriangle,
-  School
+  School,
+  MessageSquareText
 } from 'lucide-react';
 import { Link, useRoute } from 'wouter';
 import tropicalImage from '@assets/generated_images/tropical_beach_vacation_paradise.png';
+import { PlannerChat } from '@/components/planner/PlannerChat';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function TripDetails() {
   const [match, params] = useRoute("/trip/:id");
@@ -94,17 +104,39 @@ export default function TripDetails() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 pb-20">
+      <div className="h-[calc(100vh-6rem)] flex gap-6">
         
-        {/* Navigation & Header */}
-        <div className="flex flex-col gap-6">
-            <Link href="/plan">
-                <Button variant="ghost" className="w-fit pl-0 hover:pl-2 transition-all text-muted-foreground hover:text-primary">
-                    <ArrowLeft className="w-4 h-4 mr-2" /> Back to Trips
-                </Button>
-            </Link>
+        {/* Main Content Area - Scrollable */}
+        <div className="flex-1 overflow-y-auto pr-2 pb-20">
+          <div className="space-y-8">
+            
+            {/* Navigation & Header */}
+            <div className="flex flex-col gap-6">
+                <div className="flex justify-between items-center">
+                    <Link href="/plan">
+                        <Button variant="ghost" className="w-fit pl-0 hover:pl-2 transition-all text-muted-foreground hover:text-primary">
+                            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Trips
+                        </Button>
+                    </Link>
+                    
+                    {/* Mobile Chat Trigger */}
+                    <div className="xl:hidden">
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button className="rounded-full shadow-lg gap-2">
+                                    <MessageSquareText className="w-4 h-4" /> AI Planner
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent className="sm:max-w-md w-full p-0 flex flex-col pt-10">
+                                <div className="flex-1 overflow-hidden">
+                                    <PlannerChat tripIndex={tripIndex} />
+                                </div>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+                </div>
 
-            {hasSchoolConflict && (
+                {hasSchoolConflict && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-4 animate-in slide-in-from-top duration-500">
                     <div className="bg-amber-100 p-2 rounded-full text-amber-600 mt-1">
                         <School className="w-5 h-5" />
@@ -346,6 +378,14 @@ export default function TripDetails() {
                 </Card>
             </TabsContent>
         </Tabs>
+          </div>
+        </div>
+
+        {/* Right Sidebar: Planner Chat (Desktop) */}
+        <div className="hidden xl:flex w-[380px] flex-col border rounded-2xl overflow-hidden shadow-sm bg-card h-full sticky top-0">
+            <PlannerChat tripIndex={tripIndex} />
+        </div>
+
       </div>
     </AppLayout>
   );
