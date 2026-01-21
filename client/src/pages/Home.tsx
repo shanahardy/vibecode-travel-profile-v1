@@ -5,6 +5,7 @@ import { ArrowRight, Compass, Calendar, Plus, User, Sparkles } from 'lucide-reac
 import { useProfileStore } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
 import tropicalImage from '@assets/generated_images/tropical_beach_vacation_paradise.png';
+import { Mic, Shield, Globe, ArrowRight as ArrowRightIcon } from 'lucide-react';
 
 export default function Home() {
   const { profile } = useProfileStore();
@@ -14,6 +15,85 @@ export default function Home() {
   return (
     <AppLayout>
       <div className="space-y-12 py-8">
+        {/* Voice Promo Section */}
+        {!hasProfile && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div className="space-y-8">
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none px-3 py-1 text-xs font-medium uppercase tracking-wider">
+                        <Sparkles className="w-3 h-3 mr-2" />
+                        AI-Powered Travel Agent
+                    </Badge>
+                    
+                    <h1 className="text-5xl md:text-6xl font-serif font-bold leading-[1.1] tracking-tight text-foreground">
+                        Build your travel profile with <span className="text-green-600">your voice.</span>
+                    </h1>
+                    
+                    <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
+                        Stop filling out repetitive forms. Have a natural conversation with our AI to build a comprehensive, reusable travel profile that remembers your preferences, family details, and budget forever.
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-4">
+                        <Link href="/onboarding">
+                            <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-8 h-12 text-base shadow-lg shadow-green-600/20 transition-all hover:scale-105 active:scale-95 font-medium">
+                                <Mic className="mr-2 w-5 h-5" />
+                                Start Voice Onboarding
+                            </Button>
+                        </Link>
+                        <Link href="/onboarding">
+                            <Button variant="outline" size="lg" className="rounded-lg px-8 h-12 text-base border-border hover:bg-muted font-medium">
+                                Use Text Instead
+                                <ArrowRightIcon className="ml-2 w-4 h-4" />
+                            </Button>
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
+                        <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mb-2">
+                                <Mic className="w-5 h-5" />
+                            </div>
+                            <h4 className="font-semibold text-sm">Natural Voice</h4>
+                            <p className="text-xs text-muted-foreground leading-snug">Just talk naturally. We extract the details.</p>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 mb-2">
+                                <Shield className="w-5 h-5" />
+                            </div>
+                            <h4 className="font-semibold text-sm">Secure Profile</h4>
+                            <p className="text-xs text-muted-foreground leading-snug">Your data is stored securely and editable anytime.</p>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 mb-2">
+                                <Globe className="w-5 h-5" />
+                            </div>
+                            <h4 className="font-semibold text-sm">Smart Planning</h4>
+                            <p className="text-xs text-muted-foreground leading-snug">Get personalized itineraries instantly.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative h-[500px] rounded-3xl overflow-hidden shadow-2xl group">
+                     <img 
+                        src={tropicalImage} 
+                        alt="Tropical Vacation" 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                     />
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                     
+                     {/* Floating Card */}
+                     <div className="absolute bottom-8 left-8 right-8 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg border border-white/20 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
+                            <Sparkles className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="font-bold text-sm text-foreground">Dreaming of Bora Bora?</p>
+                            <p className="text-xs text-muted-foreground">"I want a relaxing beach vacation..."</p>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        )}
+
         {/* Onboarding CTA & Summary Section */}
         <div className="relative rounded-3xl overflow-hidden bg-sidebar text-sidebar-foreground p-8 md:p-12 shadow-2xl">
           {/* Background Image with Overlay */}
