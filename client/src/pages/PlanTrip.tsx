@@ -13,7 +13,9 @@ import {
   AlertTriangle,
   X,
   CalendarDays,
-  MessageSquareText
+  MessageSquareText,
+  Pencil,
+  Check
 } from 'lucide-react';
 import { useProfileStore } from '@/lib/store';
 import { Badge } from '@/components/ui/badge';
@@ -50,11 +52,14 @@ import { useState } from 'react';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PlannerChat } from '@/components/planner/PlannerChat';
+import { Input } from '@/components/ui/input';
 
 export default function PlanTrip() {
   const { profile, updateSection } = useProfileStore();
   const [dismissedWarnings, setDismissedWarnings] = useState<number[]>([]);
   const [activePlannerTrip, setActivePlannerTrip] = useState<number | null>(null);
+  const [editingTitleIndex, setEditingTitleIndex] = useState<number | null>(null);
+  const [tempTitle, setTempTitle] = useState("");
 
   const hasMinors = profile.travelGroup?.members.some(m => m.isMinor);
 
@@ -77,6 +82,19 @@ export default function PlanTrip() {
     }
 
     updateSection('upcomingTrips', newTrips);
+  };
+
+  const startEditingTitle = (idx: number, currentTitle: string) => {
+    setEditingTitleIndex(idx);
+    setTempTitle(currentTitle);
+  };
+
+  const saveTitle = (idx: number) => {
+    if (!profile.upcomingTrips) return;
+    const newTrips = [...profile.upcomingTrips];
+    newTrips[idx].destination = tempTitle;
+    updateSection('upcomingTrips', newTrips);
+    setEditingTitleIndex(null);
   };
 
   return (
@@ -124,9 +142,10 @@ export default function PlanTrip() {
                     <div className="space-y-4">
                         {profile.upcomingTrips.map((trip, idx) => {
                             const isSchoolConflict = hasMinors && checkSchoolConflict(trip.timeframe.description) && !dismissedWarnings.includes(idx);
-                            
+                            const isEditing = editingTitleIndex === idx;
+
                             return (
-                                <Card key={idx} className="group hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-primary/0 hover:border-l-primary relative overflow-visible">
+                                <Card key={idx} className="group hover:shadow-md transition-shadow border-l-4 border-l-primary/0 hover:border-l-primary relative overflow-visible">
                                     {isSchoolConflict && (
                                         <div className="bg-amber-100 text-amber-800 text-xs px-4 py-2 flex items-center justify-between border-b border-amber-200 rounded-t-xl">
                                             <span className="flex items-center gap-2 font-medium">
@@ -142,10 +161,41 @@ export default function PlanTrip() {
                                         </div>
                                     )}
                                     <CardHeader className="flex flex-row items-start justify-between pb-2">
-                                        <div>
-                                            <CardTitle className="text-xl flex items-center gap-2">
-                                                {trip.destination}
-                                            </CardTitle>
+                                        <div className="flex-1 mr-4">
+                                            <div className="flex items-center gap-2">
+                                                {isEditing ? (
+                                                    <div className="flex items-center gap-2 w-full max-w-sm">
+                                                        <Input 
+                                                            value={tempTitle}
+                                                            onChange={(e) => setTempTitle(e.target.value)}
+                                                            className="h-8 text-lg font-bold"
+                                                            autoFocus
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') saveTitle(idx);
+                                                                if (e.key === 'Escape') setEditingTitleIndex(null);
+                                                            }}
+                                                        />
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => saveTitle(idx)}>
+                                                            <Check className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setEditingTitleIndex(null)}>
+                                                            <X className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <CardTitle className="text-xl flex items-center gap-2 group/title">
+                                                        {trip.destination}
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="icon" 
+                                                            className="h-6 w-6 opacity-0 group-hover/title:opacity-100 transition-opacity text-muted-foreground hover:text-primary"
+                                                            onClick={() => startEditingTitle(idx, trip.destination)}
+                                                        >
+                                                            <Pencil className="w-3 h-3" />
+                                                        </Button>
+                                                    </CardTitle>
+                                                )}
+                                            </div>
                                             <CardDescription className="flex items-center gap-2 mt-1">
                                                 <Badge variant="secondary" className="font-normal capitalize">
                                                     {trip.purpose}
@@ -182,7 +232,9 @@ export default function PlanTrip() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem>Edit Details</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => startEditingTitle(idx, trip.destination)}>
+                                                        Rename Trip
+                                                    </DropdownMenuItem>
                                                     <Link href={`/trip/${idx}`}>
                                                         <DropdownMenuItem className="cursor-pointer">View Itinerary</DropdownMenuItem>
                                                     </Link>
