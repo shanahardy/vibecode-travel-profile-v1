@@ -141,7 +141,7 @@ export default function PlanTrip() {
                 ) : (
                     <div className="space-y-4">
                         {profile.upcomingTrips.map((trip, idx) => {
-                            const isSchoolConflict = hasMinors && checkSchoolConflict(trip.timeframe.description) && !dismissedWarnings.includes(idx);
+                            const isSchoolConflict = hasMinors && checkSchoolConflict(trip.timeframe.description, trip.timeframe.startDate) && !dismissedWarnings.includes(idx);
                             const isEditing = editingTitleIndex === idx;
 
                             return (
