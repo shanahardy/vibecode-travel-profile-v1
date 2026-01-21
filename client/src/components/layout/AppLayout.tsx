@@ -23,7 +23,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { icon: Map, label: "Dashboard", href: "/" },
     { icon: PlusCircle, label: "Plan a Trip", href: "/plan" },
-    { icon: Compass, label: "Onboarding", href: "/onboarding" },
     { icon: User, label: "Travel Profile", href: "/profile" },
   ];
 

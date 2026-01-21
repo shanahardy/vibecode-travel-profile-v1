@@ -101,7 +101,15 @@ export default function Profile() {
       <div className="space-y-8 pb-10 max-w-5xl mx-auto">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-serif font-bold">Your Travel Profile</h1>
-          <p className="text-muted-foreground">Manage your preferences and travel settings.</p>
+          <div className="flex justify-between items-start">
+            <p className="text-muted-foreground">Manage your preferences and travel settings.</p>
+            <Link href="/onboarding">
+                <Button variant="outline" size="sm" className="hidden md:flex">
+                    <Mic className="w-4 h-4 mr-2" />
+                    Open Voice Builder
+                </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

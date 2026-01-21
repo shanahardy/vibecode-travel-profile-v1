@@ -21,7 +21,7 @@ export default function Home() {
     <AppLayout>
       <div className="space-y-12 py-8">
         {/* Onboarding CTA & Summary Section */}
-        {hasProfile && (
+        {hasProfile ? (
             <div className="relative rounded-3xl overflow-hidden bg-sidebar text-sidebar-foreground p-8 md:p-12 shadow-2xl">
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 z-0">
@@ -66,14 +66,34 @@ export default function Home() {
                             <ArrowRight className="ml-2 w-5 h-5" />
                         </Button>
                     </Link>
-                    <Link href="/onboarding">
+                    <Link href="/profile">
                             <Button variant="outline" size="lg" className="rounded-full px-8 h-12 text-base bg-background/50 backdrop-blur border-primary/20 hover:bg-background/80">
-                            Update Profile
+                            Edit Profile
                         </Button>
                     </Link>
                 </div>
             </div>
             </div>
+        ) : (
+             <div className="relative rounded-3xl overflow-hidden bg-primary text-primary-foreground p-8 md:p-12 shadow-2xl">
+                 <div className="absolute inset-0 z-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2021&q=80')] bg-cover bg-center"></div>
+                 <div className="relative z-10 max-w-2xl space-y-6">
+                     <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight">
+                         Start your journey.
+                     </h1>
+                     <p className="text-xl text-primary-foreground/90 leading-relaxed">
+                         Build your comprehensive travel profile with our voice-guided assistant to get personalized trip recommendations instantly.
+                     </p>
+                     <div className="pt-4">
+                         <Link href="/onboarding">
+                             <Button size="lg" variant="secondary" className="rounded-full px-8 h-14 text-lg shadow-xl hover:scale-105 transition-transform font-bold text-primary">
+                                 <Mic className="w-5 h-5 mr-2" />
+                                 Start Voice Onboarding
+                             </Button>
+                         </Link>
+                     </div>
+                 </div>
+             </div>
         )}
 
         {/* Dashboard Grid */}
@@ -84,14 +104,14 @@ export default function Home() {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link href="/onboarding">
+            <Link href="/plan">
               <div className="group cursor-pointer rounded-2xl border border-border bg-card p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 relative overflow-hidden h-full">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <UserIcon className="w-6 h-6" />
+                  <Plus className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Update Profile</h3>
-                <p className="text-muted-foreground text-sm">Refine your preferences, budget, and travel style.</p>
+                <h3 className="text-xl font-bold mb-2">New Trip</h3>
+                <p className="text-muted-foreground text-sm">Start planning a new adventure with AI assistance.</p>
               </div>
             </Link>
 
@@ -108,13 +128,13 @@ export default function Home() {
                 </div>
             </Link>
 
-            <Link href="/plan">
+            <Link href="/profile">
                 <div className="group cursor-pointer rounded-2xl border border-dashed border-border bg-muted/30 p-6 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors h-full">
                     <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mb-4 shadow-sm text-primary group-hover:scale-110 transition-transform">
-                        <Plus className="w-8 h-8" />
+                        <User className="w-8 h-8" />
                     </div>
-                    <h3 className="text-lg font-semibold">Create New Itinerary</h3>
-                    <p className="text-muted-foreground text-xs mt-2">Start planning from scratch</p>
+                    <h3 className="text-lg font-semibold">Travel Profile</h3>
+                    <p className="text-muted-foreground text-xs mt-2">Update your preferences</p>
                 </div>
             </Link>
           </div>
