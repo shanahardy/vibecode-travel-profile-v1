@@ -1,14 +1,13 @@
 import { useRef, useEffect, useState } from 'react';
 import { useProfileStore } from '@/lib/store';
 import { handleOnboardingStep } from '@/lib/mock-ai';
-import { Send, Bot, Loader2, RefreshCcw, Mic, Keyboard } from 'lucide-react';
+import { Send, Loader2, RefreshCcw, Mic, MicOff, Volume2, VolumeX, StopCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ONBOARDING_QUESTIONS } from '@/lib/onboarding-constants';
-import { VoiceInput } from './VoiceInput';
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 export function ConversationPanel() {
   const { 
@@ -25,8 +24,13 @@ export function ConversationPanel() {
   } = useProfileStore();
   
   const [inputValue, setInputValue] = useState('');
-  const [inputMode, setInputMode] = useState<'text' | 'voice'>('text');
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Voice State
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeechSupported, setIsSpeechSupported] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(true); // Default to auto-speak on
+  const recognitionRef = useRef<any>(null);
 
   // Initialize first message if empty
   useEffect(() => {
@@ -43,13 +47,105 @@ export function ConversationPanel() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isLoading, inputMode]);
+  }, [messages, isLoading, isListening]); // Scroll when listening status changes too
+
+  // Speech Recognition Setup
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      setIsSpeechSupported(true);
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscriptChunk = '';
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscriptChunk += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscriptChunk) {
+            setInputValue(prev => (prev + ' ' + finalTranscriptChunk).trim());
+        }
+        
+        // Optional: Visualize interim results if we wanted to
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        if (event.error !== 'no-speech') {
+             setIsListening(false);
+        }
+      };
+      
+      recognitionRef.current.onend = () => {
+         // If we were listening and it stopped unexpectedly (silence), restart if still "listening" state
+         // But usually we want to let user control it. 
+         // For now, let's auto-stop if silence to avoid infinite loops of silence
+         if (isListening) {
+             // Optional: keep it alive
+             // try { recognitionRef.current.start(); } catch(e) {}
+         } else {
+             setIsListening(false);
+         }
+      };
+    }
+  }, []);
+
+  // Toggle Listening
+  const toggleListening = () => {
+    if (!isSpeechSupported) return;
+
+    if (isListening) {
+        setIsListening(false);
+        recognitionRef.current?.stop();
+    } else {
+        setIsListening(true);
+        try {
+            recognitionRef.current?.start();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+  };
+
+  // Text to Speech
+  useEffect(() => {
+      const lastMessage = messages.slice().reverse().find(m => m.role === 'assistant');
+      
+      if (!lastMessage || !autoSpeak || isListening) return; // Don't speak if listening
+      
+      // Only speak new messages (simple check: if it's the last one and we just stopped loading)
+      if (!isLoading) {
+          const textToSpeak = lastMessage.content.replace(/[*_#]/g, '');
+          const utterance = new SpeechSynthesisUtterance(textToSpeak);
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(utterance);
+      }
+      
+      return () => {
+          window.speechSynthesis.cancel();
+      }
+  }, [messages, autoSpeak, isListening, isLoading]);
+
 
   const handleSendMessage = async (overrideText?: string) => {
     const textToSend = overrideText || inputValue;
     if (!textToSend.trim()) return;
 
     if (!overrideText) setInputValue('');
+    
+    // Stop listening when sending
+    if (isListening) {
+        setIsListening(false);
+        recognitionRef.current?.stop();
+    }
     
     addMessage({ role: 'user', content: textToSend });
     setLoading(true);
@@ -62,25 +158,21 @@ export function ConversationPanel() {
         profile
       );
       
-      // Update Profile with extracted data
       if (response.extractedData && Object.keys(response.extractedData).length > 0) {
         updateProfile(response.extractedData);
       }
 
-      // Add AI Message
       addMessage({ 
         role: 'assistant', 
         content: response.text, 
         type: response.type 
       });
 
-      // Handle Step Logic
       if (response.type === 'completion') {
         // We are done
       } else if (response.requiresConfirmation) {
         setAwaitingConfirmation(true);
       } else if (isAwaitingConfirmation && !response.requiresConfirmation && response.type !== 'followup') {
-        // If we were awaiting confirmation and now we got a 'text' response (next question), we move forward
         setAwaitingConfirmation(false);
         setStep(currentStep + 1);
       }
@@ -93,164 +185,173 @@ export function ConversationPanel() {
     }
   };
 
-  const lastAssistantMessage = messages.slice().reverse().find(m => m.role === 'assistant')?.content;
-
   return (
     <div className="flex flex-col h-full bg-background relative">
-      {/* Header / Toggle */}
-      <div className="p-4 border-b border-border flex justify-center bg-muted/20">
-        <ToggleGroup type="single" value={inputMode} onValueChange={(val) => val && setInputMode(val as 'text' | 'voice')} className="bg-background border border-border rounded-full p-1 shadow-sm">
-            <ToggleGroupItem value="text" className="rounded-full px-4 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                <Keyboard className="w-4 h-4 mr-2" /> Text Chat
-            </ToggleGroupItem>
-            <ToggleGroupItem value="voice" className="rounded-full px-4 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                <Mic className="w-4 h-4 mr-2" /> Voice Mode
-            </ToggleGroupItem>
-        </ToggleGroup>
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6" ref={scrollRef}>
+        <AnimatePresence initial={false}>
+          {messages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={cn(
+                "flex w-full",
+                msg.role === 'user' ? "justify-end" : "justify-start"
+              )}
+            >
+              <div
+                className={cn(
+                  "max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-sm",
+                  msg.role === 'user'
+                    ? "bg-primary text-primary-foreground rounded-br-none"
+                    : "bg-card border border-border text-foreground rounded-bl-none",
+                  msg.type === 'confirmation' && "border-primary/50 bg-primary/5"
+                )}
+              >
+                {msg.type === 'confirmation' && (
+                  <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs uppercase tracking-wide">
+                    <RefreshCcw className="w-3 h-3" /> Confirmation Needed
+                  </div>
+                )}
+                <div className="whitespace-pre-wrap">{msg.content}</div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-start w-full"
+          >
+            <div className="bg-card border border-border rounded-2xl rounded-bl-none px-5 py-4 shadow-sm flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">Thinking...</span>
+            </div>
+          </motion.div>
+        )}
       </div>
 
-      {inputMode === 'voice' ? (
-        <div className="flex-1 overflow-hidden">
-            <VoiceInput 
-                onTranscript={(text) => setInputValue(text)} 
-                onSend={() => handleSendMessage(inputValue)}
-                lastMessage={lastAssistantMessage}
-                isProcessing={isLoading}
-            />
-        </div>
-      ) : (
-        <>
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6" ref={scrollRef}>
-                <AnimatePresence initial={false}>
-                {messages.map((msg) => (
-                    <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={cn(
-                        "flex w-full",
-                        msg.role === 'user' ? "justify-end" : "justify-start"
-                    )}
-                    >
-                    <div
-                        className={cn(
-                        "max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-sm",
-                        msg.role === 'user'
-                            ? "bg-primary text-primary-foreground rounded-br-none"
-                            : "bg-card border border-border text-foreground rounded-bl-none",
-                        msg.type === 'confirmation' && "border-primary/50 bg-primary/5"
-                        )}
-                    >
-                        {msg.type === 'confirmation' && (
-                        <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs uppercase tracking-wide">
-                            <RefreshCcw className="w-3 h-3" /> Confirmation Needed
-                        </div>
-                        )}
-                        <div className="whitespace-pre-wrap">{msg.content}</div>
-                    </div>
-                    </motion.div>
-                ))}
-                </AnimatePresence>
-                
-                {isLoading && (
-                <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex justify-start w-full"
-                >
-                <div className="bg-card border border-border rounded-2xl rounded-bl-none px-5 py-4 shadow-sm flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                    <span className="text-xs text-muted-foreground">Thinking...</span>
-                </div>
-                </motion.div>
-                )}
-            </div>
+      {/* Input Area */}
+      <div className="p-4 bg-background border-t border-border relative z-10">
+        <div className="max-w-4xl mx-auto w-full relative">
+          
+          {/* Voice Indicator Overlay (Optional) */}
+          {isListening && (
+              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-xs font-bold animate-pulse flex items-center gap-2 shadow-lg z-20">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                  Listening...
+              </div>
+          )}
 
-            {/* Input Area */}
-            <div className="p-4 bg-background border-t border-border">
-                <div className="max-w-4xl mx-auto w-full relative">
-                <form
-                    onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSendMessage();
-                    }}
-                    className="flex gap-2 items-center relative"
-                >
-                    <Input
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder={isAwaitingConfirmation ? "Confirm with 'Yes' or provide corrections..." : "Type your answer..."}
-                    className="flex-1 pr-12 h-14 rounded-full border-muted-foreground/20 focus-visible:ring-primary/20 shadow-sm text-base pl-6"
-                    disabled={isLoading}
-                    autoFocus
-                    />
-                    
-                    <div className="absolute right-2 top-2 flex gap-1">
-                        <Button 
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+            className={cn(
+                "flex gap-2 items-center relative transition-all duration-300 rounded-3xl border p-1 shadow-sm",
+                isListening ? "border-primary ring-2 ring-primary/20 bg-primary/5" : "border-muted-foreground/20 bg-background"
+            )}
+          >
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
-                            className="h-10 px-3 rounded-full text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-                            onClick={() => {
-                                // Skip Logic
-                                const nextStep = currentStep + 1;
-                                // Add user skip message
-                                addMessage({ role: 'user', content: "Skip and fill out later" });
-                                
-                                // Clear confirmation if pending
-                                if (isAwaitingConfirmation) {
-                                    setAwaitingConfirmation(false);
-                                }
+                            size="icon"
+                            className={cn(
+                                "h-10 w-10 rounded-full transition-all duration-300 ml-1",
+                                isListening ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : "text-muted-foreground hover:bg-muted"
+                            )}
+                            onClick={toggleListening}
+                            disabled={!isSpeechSupported || isLoading}
+                        >
+                            {isListening ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        {isListening ? "Stop Listening" : "Use Voice Input"}
+                    </TooltipContent>
+                </Tooltip>
+             </TooltipProvider>
 
-                                if (nextStep < ONBOARDING_QUESTIONS.length) {
-                                    setStep(nextStep);
-                                    // Simulate AI delay for natural feel
-                                    setLoading(true);
-                                    setTimeout(() => {
-                                        addMessage({ 
-                                            role: 'assistant', 
-                                            content: `No problem, we can come back to that. ${ONBOARDING_QUESTIONS[nextStep].prompt}`, 
-                                            type: 'text' 
-                                        });
-                                        setLoading(false);
-                                    }, 600);
-                                } else {
-                                    // Completion
-                                    setLoading(true);
-                                    setTimeout(() => {
-                                        addMessage({ 
-                                            role: 'assistant', 
-                                            content: "Alright! That covers the basics for now. You can fill in the rest of the details in your profile whenever you're ready.", 
-                                            type: 'completion' 
-                                        });
-                                        setLoading(false);
-                                    }, 600);
-                                }
-                            }}
-                            disabled={isLoading}
-                        >
-                            Skip
-                        </Button>
-                        <Button 
-                        type="submit" 
-                        size="icon" 
-                        className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 transition-all shadow-md"
-                        disabled={!inputValue.trim() || isLoading}
-                        >
-                        <Send className="w-4 h-4" />
-                        </Button>
-                    </div>
-                </form>
-                <div className="text-center mt-2">
-                    <span className="text-[10px] text-muted-foreground">
-                    {isAwaitingConfirmation ? "Please confirm the details above to proceed." : "Tip: You can say \"I'm done\" when you've finished answering."}
-                    </span>
-                </div>
-                </div>
+            <Input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder={
+                  isListening 
+                    ? "Speak now..." 
+                    : isAwaitingConfirmation 
+                        ? "Confirm with 'Yes' or provide corrections..." 
+                        : "Type or use voice..."
+              }
+              className="flex-1 h-12 border-none shadow-none focus-visible:ring-0 bg-transparent text-base px-2"
+              disabled={isLoading}
+              autoFocus
+            />
+            
+            <div className="flex items-center gap-1 pr-1">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                             <Button 
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className={cn("h-8 w-8 rounded-full", autoSpeak ? "text-primary" : "text-muted-foreground")}
+                                onClick={() => setAutoSpeak(!autoSpeak)}
+                             >
+                                {autoSpeak ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                             </Button>
+                        </TooltipTrigger>
+                         <TooltipContent>
+                            {autoSpeak ? "Mute Assistant Voice" : "Enable Assistant Voice"}
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+                <Button 
+                  type="submit" 
+                  size="icon" 
+                  className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 transition-all shadow-md ml-1"
+                  disabled={!inputValue.trim() || isLoading}
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
             </div>
-        </>
-      )}
+          </form>
+          
+          <div className="text-center mt-2 flex justify-between px-4">
+             <Button 
+                variant="link" 
+                size="sm" 
+                className="text-muted-foreground text-xs p-0 h-auto"
+                onClick={() => {
+                    const nextStep = currentStep + 1;
+                    addMessage({ role: 'user', content: "Skip" });
+                    if (isAwaitingConfirmation) setAwaitingConfirmation(false);
+                    if (nextStep < ONBOARDING_QUESTIONS.length) {
+                        setStep(nextStep);
+                        setLoading(true);
+                        setTimeout(() => {
+                            addMessage({ role: 'assistant', content: `Okay, moving on. ${ONBOARDING_QUESTIONS[nextStep].prompt}`, type: 'text' });
+                            setLoading(false);
+                        }, 600);
+                    }
+                }}
+             >
+                Skip Question
+             </Button>
+            <span className="text-[10px] text-muted-foreground pt-1">
+              {isAwaitingConfirmation ? "Please confirm details." : "Tip: Speak naturally to answer."}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
