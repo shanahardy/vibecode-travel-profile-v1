@@ -56,11 +56,11 @@ export default function Landing() {
                             </Badge>
                             
                             <h1 className="text-5xl md:text-7xl font-serif font-bold leading-[1.1] tracking-tight">
-                                Design your dream trip with <span className="text-primary italic">AI precision.</span>
+                                Build your Travel Profile once. <span className="text-primary italic">Plan dream trips forever.</span>
                             </h1>
                             
                             <p className="text-xl text-muted-foreground leading-relaxed max-w-xl">
-                                Forget generic itineraries. Our AI travel concierge learns your preferences, budget, and style to craft perfectly personalized journeys in seconds.
+                                Just speak to build your comprehensive travel profile. Then let AI plan your perfect itinerary instantly—without ever repeating your preferences.
                             </p>
                             
                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -134,21 +134,21 @@ export default function Landing() {
                             <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 mb-6">
                                 <Mic className="w-7 h-7" />
                             </div>
-                            <h3 className="text-xl font-bold mb-3">Natural Voice Control</h3>
+                            <h3 className="text-xl font-bold mb-3">Voice-First Profile Building</h3>
                             <p className="text-muted-foreground leading-relaxed">Just speak your plans. Our AI understands context, nuances, and corrections instantly.</p>
                         </div>
                         <div className="bg-background p-8 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
                              <div className="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 mb-6">
                                 <Shield className="w-7 h-7" />
                             </div>
-                            <h3 className="text-xl font-bold mb-3">Private & Secure</h3>
+                            <h3 className="text-xl font-bold mb-3">Reusable Travel Identity</h3>
                             <p className="text-muted-foreground leading-relaxed">Your personal data and travel preferences are encrypted and never shared without permission.</p>
                         </div>
                         <div className="bg-background p-8 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
                              <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center text-green-600 mb-6">
                                 <Globe className="w-7 h-7" />
                             </div>
-                            <h3 className="text-xl font-bold mb-3">Global Expertise</h3>
+                            <h3 className="text-xl font-bold mb-3">Instant Itinerary Generation</h3>
                             <p className="text-muted-foreground leading-relaxed">Access local insights, hidden gems, and travel tips for thousands of destinations worldwide.</p>
                         </div>
                     </div>
