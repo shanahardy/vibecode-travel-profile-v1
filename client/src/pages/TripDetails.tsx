@@ -19,7 +19,9 @@ import {
   Download,
   Map as MapIcon,
   Sun,
-  CloudRain
+  CloudRain,
+  AlertTriangle,
+  School
 } from 'lucide-react';
 import { Link, useRoute } from 'wouter';
 import tropicalImage from '@assets/generated_images/tropical_beach_vacation_paradise.png';
@@ -30,6 +32,18 @@ export default function TripDetails() {
   const tripIndex = params?.id ? parseInt(params.id) : 0;
   
   const trip = profile.upcomingTrips ? profile.upcomingTrips[tripIndex] : null;
+
+  // Check for school schedule conflicts
+  const schoolKids = profile.travelGroup?.members.filter(m => m.isMinor && m.schoolInfo?.schoolName) || [];
+  const hasSchoolConflict = trip?.timeframe.startDate && schoolKids.length > 0 && (() => {
+      const start = new Date(trip.timeframe.startDate);
+      const month = start.getMonth(); // 0-11
+      // Simple logic: School is in session Sep(8) - May(4), and often part of Jun(5)
+      // Safe summer months: July(6), August(7)
+      // Conflict months: 0, 1, 2, 3, 4, 8, 9, 10, 11
+      // June(5) is borderline, let's treat early June as school too for safety in this demo
+      return [0, 1, 2, 3, 4, 5, 8, 9, 10, 11].includes(month);
+  })();
 
   if (!trip) {
     return (
@@ -89,6 +103,30 @@ export default function TripDetails() {
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back to Trips
                 </Button>
             </Link>
+
+            {hasSchoolConflict && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-4 animate-in slide-in-from-top duration-500">
+                    <div className="bg-amber-100 p-2 rounded-full text-amber-600 mt-1">
+                        <School className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-amber-800 flex items-center gap-2">
+                            Potential School Schedule Conflict
+                        </h4>
+                        <p className="text-amber-700 text-sm mt-1">
+                            This trip is scheduled for <strong>{trip.timeframe.description}</strong>, which appears to conflict with the school calendar for:
+                        </p>
+                        <ul className="list-disc list-inside text-sm text-amber-700 mt-1 ml-1 font-medium">
+                            {schoolKids.map((kid, idx) => (
+                                <li key={idx}>{kid.name} ({kid.schoolInfo?.schoolName})</li>
+                            ))}
+                        </ul>
+                    </div>
+                    <Button variant="outline" size="sm" className="ml-auto border-amber-200 text-amber-700 hover:bg-amber-100 hover:text-amber-800">
+                        View Calendar
+                    </Button>
+                </div>
+            )}
 
             <div className="relative h-[300px] rounded-3xl overflow-hidden shadow-xl group">
                 <img 
