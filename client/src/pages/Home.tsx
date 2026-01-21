@@ -95,83 +95,60 @@ export default function Home() {
         )}
 
         {/* Onboarding CTA & Summary Section */}
-        <div className="relative rounded-3xl overflow-hidden bg-sidebar text-sidebar-foreground p-8 md:p-12 shadow-2xl">
-          {/* Background Image with Overlay */}
-          <div className="absolute inset-0 z-0">
-             <img src={tropicalImage} alt="Tropical Vacation" className="w-full h-full object-cover opacity-40" />
-             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-transparent/50"></div>
-          </div>
+        {hasProfile && (
+            <div className="relative rounded-3xl overflow-hidden bg-sidebar text-sidebar-foreground p-8 md:p-12 shadow-2xl">
+            {/* Background Image with Overlay */}
+            <div className="absolute inset-0 z-0">
+                <img src={tropicalImage} alt="Tropical Vacation" className="w-full h-full object-cover opacity-40" />
+                <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-transparent/50"></div>
+            </div>
 
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none relative z-10"></div>
-          
-          <div className="relative z-10 max-w-3xl space-y-6">
-            {!hasProfile ? (
-                <>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium uppercase tracking-wider mb-2">
-                        <Sparkles className="w-3 h-3" />
-                        Start Here
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight">
-                        Design your dream trip
-                    </h1>
-                    <p className="text-lg text-sidebar-foreground/80 leading-relaxed max-w-xl">
-                        Your personal AI travel concierge is ready. Tell us about your travel style, and we'll handle the rest.
-                    </p>
-                    <div className="flex gap-4 pt-4">
-                        <Link href="/onboarding">
-                            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-12 text-base shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95">
-                                Get Started
-                                <ArrowRight className="ml-2 w-5 h-5" />
-                            </Button>
-                        </Link>
-                    </div>
-                </>
-            ) : (
-                <>
-                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium uppercase tracking-wider mb-2">
-                        <User className="w-3 h-3" />
-                        Travel Profile Active
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight">
-                        Welcome back, {profile.name.split(' ')[0]}
-                    </h1>
-                    <div className="flex flex-wrap gap-4 py-2">
-                         {profile.location?.city && (
-                             <Badge variant="outline" className="bg-background/50 backdrop-blur border-primary/20 text-foreground py-1.5 px-3">
-                                 📍 Based in {profile.location.city}
-                             </Badge>
-                         )}
-                         {tripCount > 0 && (
-                             <Badge variant="outline" className="bg-background/50 backdrop-blur border-primary/20 text-foreground py-1.5 px-3">
-                                 ✈️ {tripCount} Trip{tripCount !== 1 ? 's' : ''} Planned
-                             </Badge>
-                         )}
-                         {profile.travelGroup?.type && (
-                             <Badge variant="outline" className="bg-background/50 backdrop-blur border-primary/20 text-foreground py-1.5 px-3 capitalize">
-                                 👥 {profile.travelGroup.type} Traveler
-                             </Badge>
-                         )}
-                    </div>
-                    <p className="text-lg text-sidebar-foreground/80 leading-relaxed max-w-xl">
-                        Your profile is set up and ready. Continue planning your upcoming adventures or refine your preferences.
-                    </p>
-                    <div className="flex gap-4 pt-4">
-                        <Link href="/plan">
-                            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-12 text-base shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95">
-                                Plan a New Trip
-                                <ArrowRight className="ml-2 w-5 h-5" />
-                            </Button>
-                        </Link>
-                        <Link href="/onboarding">
-                             <Button variant="outline" size="lg" className="rounded-full px-8 h-12 text-base bg-background/50 backdrop-blur border-primary/20 hover:bg-background/80">
-                                Update Profile
-                            </Button>
-                        </Link>
-                    </div>
-                </>
-            )}
-          </div>
-        </div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none relative z-10"></div>
+            
+            <div className="relative z-10 max-w-3xl space-y-6">
+                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium uppercase tracking-wider mb-2">
+                    <User className="w-3 h-3" />
+                    Travel Profile Active
+                </div>
+                <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight">
+                    Welcome back, {profile.name.split(' ')[0]}
+                </h1>
+                <div className="flex flex-wrap gap-4 py-2">
+                        {profile.location?.city && (
+                            <Badge variant="outline" className="bg-background/50 backdrop-blur border-primary/20 text-foreground py-1.5 px-3">
+                                📍 Based in {profile.location.city}
+                            </Badge>
+                        )}
+                        {tripCount > 0 && (
+                            <Badge variant="outline" className="bg-background/50 backdrop-blur border-primary/20 text-foreground py-1.5 px-3">
+                                ✈️ {tripCount} Trip{tripCount !== 1 ? 's' : ''} Planned
+                            </Badge>
+                        )}
+                        {profile.travelGroup?.type && (
+                            <Badge variant="outline" className="bg-background/50 backdrop-blur border-primary/20 text-foreground py-1.5 px-3 capitalize">
+                                👥 {profile.travelGroup.type} Traveler
+                            </Badge>
+                        )}
+                </div>
+                <p className="text-lg text-sidebar-foreground/80 leading-relaxed max-w-xl">
+                    Your profile is set up and ready. Continue planning your upcoming adventures or refine your preferences.
+                </p>
+                <div className="flex gap-4 pt-4">
+                    <Link href="/plan">
+                        <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-12 text-base shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95">
+                            Plan a New Trip
+                            <ArrowRight className="ml-2 w-5 h-5" />
+                        </Button>
+                    </Link>
+                    <Link href="/onboarding">
+                            <Button variant="outline" size="lg" className="rounded-full px-8 h-12 text-base bg-background/50 backdrop-blur border-primary/20 hover:bg-background/80">
+                            Update Profile
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+            </div>
+        )}
 
         {/* Dashboard Grid */}
         <div>
