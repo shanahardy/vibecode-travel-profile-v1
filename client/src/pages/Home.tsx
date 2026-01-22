@@ -141,7 +141,7 @@ export default function Home() {
                 <Link href="/plan">
                     <div className="group cursor-pointer rounded-2xl border border-border bg-card p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 relative overflow-hidden h-full">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center mb-4 text-secondary-foreground group-hover:bg-secondary group-hover:text-secondary-foreground transition-colors">
+                        <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                             <Calendar className="w-6 h-6" />
                         </div>
                         <h3 className="text-xl font-bold mb-2">Upcoming Trips</h3>
