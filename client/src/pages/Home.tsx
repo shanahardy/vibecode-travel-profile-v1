@@ -151,6 +151,17 @@ export default function Home() {
                 </div>
             </Link>
 
+            <Link href="/onboarding">
+                <div className="group cursor-pointer rounded-2xl border border-border bg-card p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 relative overflow-hidden h-full">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                        <Mic className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">Voice Builder</h3>
+                    <p className="text-muted-foreground text-sm">Update your profile using our voice assistant.</p>
+                </div>
+            </Link>
+
             <Link href="/profile">
                 <div className="group cursor-pointer rounded-2xl border border-dashed border-border bg-muted/30 p-6 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors h-full">
                     <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mb-4 shadow-sm text-primary group-hover:scale-110 transition-transform">
