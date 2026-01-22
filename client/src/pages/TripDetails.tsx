@@ -329,6 +329,41 @@ export default function TripDetails() {
             </div>
         </div>
 
+        {/* Map & Notes Section - Compact & Side-by-Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="overflow-hidden flex flex-row h-32">
+                <div className="w-32 bg-muted relative shrink-0 group cursor-pointer">
+                     <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-122.4241,37.78,14.25,0,0/600x600?access_token=pk.eyJ1IjoidHJhdmVsdXhlIiwiYSI6ImNrbHl5bHhyaDAwYnoydm8xZ3J5bHhyaDAifQ.xv_y_z')] bg-cover opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                     <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-background/80 p-2 rounded-full shadow-sm">
+                            <MapPin className="w-4 h-4 text-primary" />
+                        </div>
+                     </div>
+                </div>
+                <div className="flex flex-col justify-center p-4">
+                     <h3 className="font-bold flex items-center gap-2 text-base mb-1">Trip Map</h3>
+                     <p className="text-xs text-muted-foreground line-clamp-2">Explore {trip.destination} locations and saved spots.</p>
+                     <Button variant="link" className="p-0 h-auto text-xs text-primary w-fit mt-1">View Interactive Map</Button>
+                </div>
+            </Card>
+
+            <Card className="h-32 flex flex-col justify-center">
+                 <CardContent className="p-4 pt-4">
+                    <div className="flex items-start gap-3">
+                        <div className="bg-primary/10 p-2 rounded-full text-primary shrink-0">
+                            <MessageSquareText className="w-4 h-4" />
+                        </div>
+                        <div>
+                             <h3 className="font-bold text-base mb-1">Trip Notes</h3>
+                             <p className="text-sm text-muted-foreground italic line-clamp-2">
+                                 "{trip.notes || "No specific notes added yet. Use the planner chat to add details."}"
+                             </p>
+                        </div>
+                    </div>
+                 </CardContent>
+            </Card>
+        </div>
+
         {/* Content Tabs */}
         <Tabs defaultValue="itinerary" className="w-full">
             <TabsList className="w-full justify-start h-12 bg-transparent border-b rounded-none px-0 mb-6 gap-6">
@@ -338,9 +373,8 @@ export default function TripDetails() {
             </TabsList>
 
             <TabsContent value="itinerary" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column: Timeline */}
-                    <div className="lg:col-span-2 space-y-12">
+                <div className="space-y-12">
+                    {/* Timeline - Full Width */}
                         {itineraryDays.map((day) => (
                             <div key={day.day} className="space-y-6">
                                 <div className="flex items-start gap-4">
@@ -440,37 +474,6 @@ export default function TripDetails() {
                             </div>
                         ))}
                     </div>
-
-                    {/* Right Column: Map & Notes */}
-                    <div className="space-y-6">
-                        <Card className="overflow-hidden">
-                            <CardHeader className="pb-0">
-                                <CardTitle className="flex items-center gap-2 text-lg">
-                                    <MapIcon className="w-4 h-4" /> Trip Map
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-4">
-                                <div className="aspect-square w-full bg-muted rounded-xl flex items-center justify-center text-muted-foreground relative overflow-hidden group cursor-pointer">
-                                    <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-122.4241,37.78,14.25,0,0/600x600?access_token=pk.eyJ1IjoidHJhdmVsdXhlIiwiYSI6ImNrbHl5bHhyaDAwYnoydm8xZ3J5bHhyaDAifQ.xv_y_z')] bg-cover opacity-50 group-hover:opacity-60 transition-opacity"></div>
-                                    <span className="relative z-10 font-medium flex items-center gap-2 bg-background/80 backdrop-blur px-3 py-1.5 rounded-full border shadow-sm">
-                                        <MapPin className="w-4 h-4 text-primary" /> View Interactive Map
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                             <CardHeader>
-                                <CardTitle className="text-lg">Trip Notes</CardTitle>
-                             </CardHeader>
-                             <CardContent>
-                                 <p className="text-sm text-muted-foreground italic">
-                                     "{trip.notes || "No specific notes added yet. Use the planner chat to add details."}"
-                                 </p>
-                             </CardContent>
-                        </Card>
-                    </div>
-                </div>
             </TabsContent>
 
             <TabsContent value="flights">
