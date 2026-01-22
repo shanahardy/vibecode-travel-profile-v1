@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useProfileStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
@@ -26,7 +27,9 @@ import {
   Heart,
   Check,
   Star,
-  Globe
+  Globe,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 import { Link, useRoute } from 'wouter';
 import tropicalImage from '@assets/generated_images/tropical_beach_vacation_paradise.png';
@@ -44,6 +47,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 interface ProductOption {
   id: string;
@@ -72,6 +76,7 @@ export default function TripDetails() {
   const [match, params] = useRoute("/trip/:id");
   const { profile } = useProfileStore();
   const tripIndex = params?.id ? parseInt(params.id) : 0;
+  const [isPlannerCollapsed, setIsPlannerCollapsed] = useState(false);
   
   const trip = profile.upcomingTrips ? profile.upcomingTrips[tripIndex] : null;
 
@@ -575,8 +580,36 @@ export default function TripDetails() {
         </div>
 
         {/* Right Sidebar: Planner Chat (Desktop) */}
-        <div className="hidden xl:flex w-[380px] flex-col border rounded-2xl overflow-hidden shadow-sm bg-card h-full sticky top-0">
-            <PlannerChat tripIndex={tripIndex} />
+        <div className={cn(
+            "hidden xl:flex flex-col border rounded-2xl overflow-hidden shadow-sm bg-card h-full sticky top-0 transition-all duration-300 relative",
+            isPlannerCollapsed ? "w-12" : "w-[380px]"
+        )}>
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute -left-3 top-6 h-6 w-6 rounded-full border bg-background shadow-md z-10 hover:bg-muted"
+                onClick={() => setIsPlannerCollapsed(!isPlannerCollapsed)}
+            >
+                {isPlannerCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </Button>
+            
+            <div className={cn(
+                "h-full w-full transition-opacity duration-300",
+                isPlannerCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
+            )}>
+                 <PlannerChat tripIndex={tripIndex} />
+            </div>
+
+            {isPlannerCollapsed && (
+                <div className="absolute inset-0 flex flex-col items-center pt-16 gap-4 cursor-pointer" onClick={() => setIsPlannerCollapsed(false)}>
+                    <div className="bg-primary/10 p-2 rounded-full text-primary">
+                        <MessageSquareText className="w-5 h-5" />
+                    </div>
+                    <div className="writing-vertical-rl text-muted-foreground font-semibold tracking-wide text-sm rotate-180">
+                        AI Planner
+                    </div>
+                </div>
+            )}
         </div>
 
       </div>
