@@ -30,11 +30,11 @@ import {
 } from 'lucide-react';
 import { Link, useRoute } from 'wouter';
 import tropicalImage from '@assets/generated_images/tropical_beach_vacation_paradise.png';
-import hotel1 from '@assets/images/hotel-1.jpg';
-import hotel2 from '@assets/images/hotel-2.jpg';
-import hotel3 from '@assets/images/hotel-3.jpg';
-import activity1 from '@assets/images/activity-1.jpg';
-import activity2 from '@assets/images/activity-2.jpg';
+import hotel1 from '@/assets/images/hotel-1.jpg';
+import hotel2 from '@/assets/images/hotel-2.jpg';
+import hotel3 from '@/assets/images/hotel-3.jpg';
+import activity1 from '@/assets/images/activity-1.jpg';
+import activity2 from '@/assets/images/activity-2.jpg';
 import { PlannerChat } from '@/components/planner/PlannerChat';
 import {
   Sheet,
@@ -335,42 +335,104 @@ export default function TripDetails() {
             <TabsContent value="itinerary" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column: Timeline */}
-                    <div className="lg:col-span-2 space-y-8">
+                    <div className="lg:col-span-2 space-y-12">
                         {itineraryDays.map((day) => (
-                            <Card key={day.day} className="border-none shadow-sm bg-secondary/10">
-                                <CardHeader className="pb-2">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <Badge variant="outline" className="mb-2 bg-background">Day {day.day}</Badge>
-                                            <CardTitle className="text-xl">{day.title}</CardTitle>
-                                            <CardDescription>{day.date}</CardDescription>
-                                        </div>
-                                        <div className="flex gap-2">
-                                             <div className="flex items-center gap-1 text-xs text-muted-foreground bg-background px-2 py-1 rounded-full border">
-                                                <Sun className="w-3 h-3 text-orange-400" /> 82°F
-                                             </div>
-                                        </div>
+                            <div key={day.day} className="space-y-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold shrink-0">
+                                        {day.day}
                                     </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="relative pl-6 border-l-2 border-primary/20 space-y-8 my-4">
-                                        {day.activities.map((activity, idx) => (
-                                            <div key={idx} className="relative">
-                                                <div className="absolute -left-[31px] bg-background border-2 border-primary/20 rounded-full p-1.5 text-primary">
-                                                    <activity.icon className="w-3 h-3" />
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-bold font-mono text-primary">{activity.time}</span>
-                                                        <h4 className="font-semibold">{activity.title}</h4>
+                                    <div>
+                                        <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium mb-1">
+                                            <Calendar className="w-4 h-4" /> {day.date}
+                                        </div>
+                                        <h3 className="text-2xl font-bold font-serif">{day.title}</h3>
+                                        <p className="text-muted-foreground mt-1">{day.description}</p>
+                                    </div>
+                                </div>
+
+                                <div className="pl-5 border-l-2 border-muted ml-5 space-y-8">
+                                    {day.slots.map((slot, idx) => (
+                                        <div key={idx} className="pl-8 relative">
+                                            {/* Timeline dot */}
+                                            <div className="absolute -left-[9px] top-6 w-4 h-4 rounded-full border-4 border-background bg-primary"></div>
+                                            
+                                            <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
+                                                <div className="p-4 border-b bg-muted/30 flex justify-between items-center">
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-bold text-lg">{slot.period}</h4>
+                                                            <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-1 rounded border">{slot.timeRange}</span>
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mt-1">{slot.title}</p>
                                                     </div>
-                                                    <p className="text-sm text-muted-foreground">{activity.description}</p>
+                                                    {slot.options.length > 1 && (
+                                                            <Badge variant="secondary" className="font-normal">
+                                                            {slot.options.length} options
+                                                            </Badge>
+                                                    )}
+                                                </div>
+
+                                                <div className="p-4 overflow-x-auto pb-6">
+                                                    <div className="flex gap-4 min-w-min">
+                                                        {slot.options.map((option) => (
+                                                            <div key={option.id} className="w-[280px] shrink-0 group relative bg-background rounded-xl border hover:shadow-md transition-all">
+                                                                <div className="relative h-40 rounded-t-xl overflow-hidden">
+                                                                    <img src={option.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={option.title} />
+                                                                    <div className="absolute top-2 left-2">
+                                                                        <Badge variant="secondary" className="bg-white/90 backdrop-blur text-primary border-none shadow-sm capitalize">
+                                                                            {option.type}
+                                                                        </Badge>
+                                                                    </div>
+                                                                    <div className="absolute top-2 right-2">
+                                                                        {option.isSelected ? (
+                                                                            <div className="bg-green-500 text-white rounded-full p-1 shadow-sm">
+                                                                                <Check className="w-4 h-4" />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full bg-black/20 hover:bg-white text-white hover:text-red-500 backdrop-blur-sm">
+                                                                                <Heart className={`w-4 h-4 ${option.isSaved ? "fill-red-500 text-red-500" : ""}`} />
+                                                                            </Button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div className="p-4 space-y-3">
+                                                                    <div>
+                                                                        <h5 className="font-bold leading-tight line-clamp-1 mb-1">{option.title}</h5>
+                                                                        <p className="text-xs text-muted-foreground line-clamp-2 h-8">{option.description}</p>
+                                                                    </div>
+                                                                    
+                                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                                            <MapPin className="w-3 h-3" /> {option.location}
+                                                                    </div>
+
+                                                                    <div className="flex justify-between items-end pt-2">
+                                                                        <div>
+                                                                            <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
+                                                                                <Star className="w-3 h-3 fill-current" /> {option.rating}
+                                                                                <span className="text-muted-foreground font-normal">({option.reviews})</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="text-right">
+                                                                            <div className="font-bold text-lg">{option.currency}{option.price}</div>
+                                                                            <div className="text-[10px] text-muted-foreground uppercase">Per Person</div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <Button className={`w-full ${option.isSelected ? "bg-green-600 hover:bg-green-700" : ""}`} variant={option.isSelected ? "default" : "outline"}>
+                                                                        {option.isSelected ? "Booked" : "View Details"}
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         ))}
                     </div>
 
