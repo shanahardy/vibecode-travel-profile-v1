@@ -163,7 +163,7 @@ export default function Home() {
                 </Link>
 
                 <Link href="/profile">
-                    <div className="group cursor-pointer rounded-2xl border border-dashed border-border p-6 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors h-full bg-[#ffffff] text-[#374151]">
+                    <div className="group cursor-pointer rounded-2xl border border-dashed border-border p-6 flex flex-col items-center justify-center hover:bg-muted/50 transition-colors h-full bg-[#ffffff] text-[#374151] text-left">
                         <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mb-4 shadow-sm text-primary group-hover:scale-110 transition-transform">
                             <User className="w-8 h-8" />
                         </div>
