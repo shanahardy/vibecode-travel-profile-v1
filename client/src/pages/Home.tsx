@@ -104,23 +104,28 @@ export default function Home() {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {profile.name === 'Alex Johnson' && (
-                <div 
-                    className="group cursor-pointer rounded-2xl border border-dashed border-red-200 bg-red-50 p-6 flex flex-col items-center justify-center text-center hover:bg-red-100 transition-colors h-full"
-                    onClick={() => {
-                        if (window.confirm("Are you sure you want to clear the demo profile and start fresh?")) {
-                            useProfileStore.getState().resetConversation();
-                            window.location.reload();
-                        }
-                    }}
-                >
-                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm text-red-500 group-hover:scale-110 transition-transform">
-                        <LogOut className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-red-800">Exit Demo Mode</h3>
-                    <p className="text-red-600 text-xs mt-2">Clear data & start fresh</p>
+            <div 
+                className="group cursor-pointer rounded-2xl border border-dashed border-red-200 bg-red-50 p-6 flex flex-col items-center justify-center text-center hover:bg-red-100 transition-colors h-full"
+                onClick={() => {
+                    const isDemo = profile.name === 'Alex Johnson';
+                    const message = isDemo 
+                        ? "Are you sure you want to clear the demo profile and start fresh?"
+                        : "Are you sure you want to delete your profile and start over?";
+                        
+                    if (window.confirm(message)) {
+                        useProfileStore.getState().resetConversation();
+                        window.location.reload();
+                    }
+                }}
+            >
+                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm text-red-500 group-hover:scale-110 transition-transform">
+                    <LogOut className="w-8 h-8" />
                 </div>
-            )}
+                <h3 className="text-lg font-semibold text-red-800">
+                    {profile.name === 'Alex Johnson' ? 'Exit Demo Mode' : 'Reset Profile'}
+                </h3>
+                <p className="text-red-600 text-xs mt-2">Clear data & start fresh</p>
+            </div>
 
             <Link href="/plan">
               <div className="group cursor-pointer rounded-2xl border border-border bg-card p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 relative overflow-hidden h-full">

@@ -28,11 +28,12 @@ export default function Landing() {
                 <div className="flex items-center gap-4">
                      <Button 
                         variant="ghost" 
-                        className="font-medium hidden sm:flex text-muted-foreground hover:text-primary"
+                        className="font-medium flex text-muted-foreground hover:text-primary"
                         onClick={handleDemoLogin}
                      >
                         <UserCheck className="w-4 h-4 mr-2" />
-                        Load Demo Profile
+                        <span className="hidden sm:inline">Load Demo Profile</span>
+                        <span className="sm:hidden">Demo</span>
                      </Button>
                     <Link href="/onboarding">
                          <Button variant="ghost" className="font-medium hidden sm:flex">Log In</Button>
