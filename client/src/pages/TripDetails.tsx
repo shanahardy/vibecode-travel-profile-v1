@@ -390,11 +390,9 @@ export default function TripDetails() {
                                     </div>
                                 </div>
 
-                                <div className="pl-5 border-l-2 border-muted ml-5 space-y-8">
+                                <div className="space-y-8">
                                     {day.slots.map((slot, idx) => (
-                                        <div key={idx} className="pl-8 relative">
-                                            {/* Timeline dot */}
-                                            <div className="absolute -left-[9px] top-6 w-4 h-4 rounded-full border-4 border-background bg-primary"></div>
+                                        <div key={idx} className="relative">
                                             
                                             <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
                                                 <div className="p-4 border-b bg-muted/30 flex justify-between items-center">
