@@ -204,6 +204,52 @@ export default function TripDetails() {
                     isSelected: true
                 }
             ] as ProductOption[]
+        },
+        {
+            period: "Evening",
+            timeRange: "7:00 PM - 10:00 PM",
+            title: "Dinner & Nightlife",
+            description: "Enjoy a world-class dining experience followed by local entertainment.",
+            options: [
+                {
+                    id: "food-1",
+                    title: "Lagoon Restaurant",
+                    type: 'food',
+                    image: hotel2,
+                    rating: 4.9,
+                    reviews: 850,
+                    price: 150,
+                    currency: '$',
+                    location: "St. Regis Bora Bora",
+                    description: "Fine dining featuring French-Asian fusion cuisine with shark viewing.",
+                    isSaved: true
+                },
+                {
+                    id: "act-evening-1",
+                    title: "Polynesian Fire Dance",
+                    type: 'activity',
+                    image: activity1, 
+                    rating: 4.8,
+                    reviews: 1200,
+                    price: 85,
+                    currency: '$',
+                    location: "Otemanu Beach",
+                    description: "Traditional Tahitian fire dancing and buffet dinner.",
+                    isSelected: true
+                },
+                 {
+                    id: "food-2",
+                    title: "Bloody Mary's",
+                    type: 'food',
+                    image: hotel3, 
+                    rating: 4.6,
+                    reviews: 3400,
+                    price: 60,
+                    currency: '$',
+                    location: "Povai Bay",
+                    description: "Famous sand-floor restaurant visited by many celebrities.",
+                }
+            ] as ProductOption[]
         }
       ]
     },
