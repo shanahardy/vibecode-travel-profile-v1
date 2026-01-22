@@ -163,12 +163,13 @@ export default function Home() {
                 </Link>
 
                 <Link href="/profile">
-                    <div className="group cursor-pointer rounded-2xl border border-dashed border-border p-6 flex flex-col items-center justify-center hover:bg-muted/50 transition-colors h-full bg-[#ffffff] text-[#374151] text-left">
-                        <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mb-4 shadow-sm text-primary group-hover:scale-110 transition-transform">
-                            <User className="w-8 h-8" />
+                    <div className="group cursor-pointer rounded-2xl border border-border bg-card p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 relative overflow-hidden h-full">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <User className="w-6 h-6" />
                         </div>
-                        <h3 className="text-lg font-semibold">Travel Profile</h3>
-                        <p className="text-muted-foreground text-xs mt-2">Update your preferences</p>
+                        <h3 className="text-xl font-bold mb-2">Travel Profile</h3>
+                        <p className="text-muted-foreground text-sm">Update your preferences and settings.</p>
                     </div>
                 </Link>
               </div>
