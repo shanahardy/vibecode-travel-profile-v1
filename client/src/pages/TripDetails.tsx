@@ -693,7 +693,7 @@ export default function TripDetails() {
 
         {/* Right Sidebar: Planner Chat (Desktop) */}
         <div className={cn(
-            "hidden xl:flex flex-col border rounded-2xl overflow-hidden shadow-sm bg-card h-full sticky top-0 transition-all duration-300 relative",
+            "hidden xl:flex flex-col border rounded-2xl shadow-sm bg-card h-full sticky top-0 transition-all duration-300 relative",
             isPlannerCollapsed ? "w-12" : "w-[380px]"
         )}>
             <Button 
@@ -706,7 +706,7 @@ export default function TripDetails() {
             </Button>
             
             <div className={cn(
-                "h-full w-full transition-opacity duration-300",
+                "h-full w-full transition-opacity duration-300 overflow-hidden",
                 isPlannerCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
             )}>
                  <PlannerChat tripIndex={tripIndex} />
