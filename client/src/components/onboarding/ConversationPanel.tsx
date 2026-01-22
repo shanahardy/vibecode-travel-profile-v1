@@ -58,25 +58,6 @@ export function ConversationPanel() {
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
 
-      recognitionRef.current.onresult = (event: any) => {
-        let finalTranscriptChunk = '';
-        let interimTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscriptChunk += event.results[i][0].transcript;
-          } else {
-            interimTranscript += event.results[i][0].transcript;
-          }
-        }
-        
-        if (finalTranscriptChunk) {
-            setInputValue(prev => (prev + ' ' + finalTranscriptChunk).trim());
-        }
-        
-        // Optional: Visualize interim results if we wanted to
-      };
-
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error', event.error);
         if (event.error !== 'no-speech') {
@@ -97,6 +78,7 @@ export function ConversationPanel() {
       };
     }
   }, []);
+
 
   // Toggle Listening
   const toggleListening = () => {
@@ -184,6 +166,61 @@ export function ConversationPanel() {
       setLoading(false);
     }
   };
+
+  // Update onresult handler with fresh state (inputValue, handleSendMessage)
+  // Moved here because it depends on handleSendMessage
+  useEffect(() => {
+    if (!recognitionRef.current) return;
+
+    recognitionRef.current.onresult = (event: any) => {
+        let finalTranscriptChunk = '';
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscriptChunk += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscriptChunk) {
+            // Check for completion phrases to auto-submit
+            const lowerFinal = finalTranscriptChunk.toLowerCase().trim().replace(/[.,!?]$/, '');
+            const completionPhrases = ["done", "i'm finished", "that's it", "im finished", "i am finished"];
+            
+            const matchedPhrase = completionPhrases.find(p => lowerFinal.endsWith(p) || lowerFinal === p);
+
+            if (matchedPhrase) {
+                // Stop listening
+                setIsListening(false);
+                recognitionRef.current.stop();
+
+                // Clean the transcript (remove the completion phrase)
+                const regex = new RegExp(`${matchedPhrase}[.,!?]*$`, 'i');
+                const cleanFinal = finalTranscriptChunk.replace(regex, '').trim();
+                
+                // Construct full message
+                const fullText = (inputValue + ' ' + cleanFinal).trim();
+                
+                // Submit if there's content (or even if empty, if "done" implies skip? No, usually implies submission of what's said)
+                // If they just say "done", fullText might be empty if inputValue was empty.
+                // If fullText is empty, maybe they mean "skip" or "I have nothing to add"? 
+                // For now, let's assume they want to submit whatever they have.
+                if (fullText) {
+                    handleSendMessage(fullText);
+                } else {
+                    // If they just say "done" with no other input, treat it as sending "Done" or skipping?
+                    // Let's send "Done" so the AI sees it.
+                    handleSendMessage("Done");
+                }
+                return;
+            }
+
+            setInputValue(prev => (prev + ' ' + finalTranscriptChunk).trim());
+        }
+    };
+  }, [inputValue, handleSendMessage, setIsListening]);
 
   return (
     <div className="flex flex-col h-full bg-background relative">
