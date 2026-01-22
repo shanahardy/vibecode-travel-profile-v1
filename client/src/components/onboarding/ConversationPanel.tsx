@@ -121,7 +121,7 @@ export function ConversationPanel() {
     const textToSend = overrideText || inputValue;
     if (!textToSend.trim()) return;
 
-    if (!overrideText) setInputValue('');
+    setInputValue('');
     
     // Stop listening when sending
     if (isListening) {
