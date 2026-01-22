@@ -416,6 +416,7 @@ export default function TripDetails() {
                 <TabsTrigger value="itinerary" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-3 font-semibold text-base">Itinerary</TabsTrigger>
                 <TabsTrigger value="flights" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-3 font-semibold text-base">Flights & Stay</TabsTrigger>
                 <TabsTrigger value="budget" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-3 font-semibold text-base">Budget</TabsTrigger>
+                <TabsTrigger value="favorites" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-3 font-semibold text-base">Favorites</TabsTrigger>
             </TabsList>
 
             <TabsContent value="itinerary" className="space-y-6">
@@ -621,6 +622,70 @@ export default function TripDetails() {
                         </div>
                     </CardContent>
                 </Card>
+            </TabsContent>
+            <TabsContent value="favorites">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {itineraryDays.flatMap(day => day.slots.flatMap(slot => slot.options))
+                        .filter(option => option.isSaved)
+                        .map(option => (
+                            <div key={option.id} className="group relative bg-background rounded-xl border hover:shadow-md transition-all overflow-hidden flex flex-col h-full">
+                                <div className="relative h-48 overflow-hidden">
+                                    <img src={option.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={option.title} />
+                                    <div className="absolute top-2 left-2">
+                                        <Badge variant="secondary" className="bg-white/90 backdrop-blur text-primary border-none shadow-sm capitalize">
+                                            {option.type}
+                                        </Badge>
+                                    </div>
+                                    <div className="absolute top-2 right-2">
+                                         <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full bg-white text-red-500 shadow-sm hover:bg-red-50 hover:text-red-600">
+                                            <Heart className="w-4 h-4 fill-current" />
+                                        </Button>
+                                    </div>
+                                </div>
+                                
+                                <div className="p-4 flex flex-col flex-1 gap-3">
+                                    <div>
+                                        <h5 className="font-bold leading-tight line-clamp-1 mb-1">{option.title}</h5>
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{option.description}</p>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <MapPin className="w-3 h-3" /> {option.location}
+                                    </div>
+
+                                    <div className="mt-auto pt-2">
+                                        <div className="flex justify-between items-end mb-3">
+                                            <div>
+                                                <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
+                                                    <Star className="w-3 h-3 fill-current" /> {option.rating}
+                                                    <span className="text-muted-foreground font-normal">({option.reviews})</span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="font-bold text-lg">{option.currency}{option.price}</div>
+                                                <div className="text-[10px] text-muted-foreground uppercase">Per Person</div>
+                                            </div>
+                                        </div>
+
+                                        <Button className={`w-full ${option.isSelected ? "bg-green-600 hover:bg-green-700" : ""}`} variant={option.isSelected ? "default" : "outline"}>
+                                            {option.isSelected ? (
+                                                <>
+                                                    <Check className="w-4 h-4 mr-2" /> Booked
+                                                </>
+                                            ) : "Book Now"}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {itineraryDays.flatMap(day => day.slots.flatMap(slot => slot.options)).filter(option => option.isSaved).length === 0 && (
+                             <div className="col-span-full py-20 text-center text-muted-foreground bg-muted/20 rounded-xl border border-dashed">
+                                <Heart className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                <h3 className="text-lg font-semibold mb-1">No Favorites Yet</h3>
+                                <p>Heart items in your itinerary to save them here for later.</p>
+                             </div>
+                        )}
+                 </div>
             </TabsContent>
         </Tabs>
           </div>
