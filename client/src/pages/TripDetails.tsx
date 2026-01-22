@@ -2,7 +2,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useProfileStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -22,10 +22,19 @@ import {
   CloudRain,
   AlertTriangle,
   School,
-  MessageSquareText
+  MessageSquareText,
+  Heart,
+  Check,
+  Star,
+  Globe
 } from 'lucide-react';
 import { Link, useRoute } from 'wouter';
 import tropicalImage from '@assets/generated_images/tropical_beach_vacation_paradise.png';
+import hotel1 from '@assets/images/hotel-1.jpg';
+import hotel2 from '@assets/images/hotel-2.jpg';
+import hotel3 from '@assets/images/hotel-3.jpg';
+import activity1 from '@assets/images/activity-1.jpg';
+import activity2 from '@assets/images/activity-2.jpg';
 import { PlannerChat } from '@/components/planner/PlannerChat';
 import {
   Sheet,
@@ -35,6 +44,29 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+
+interface ProductOption {
+  id: string;
+  title: string;
+  type: 'stay' | 'activity' | 'food';
+  image: string;
+  rating: number;
+  reviews: number;
+  price: number;
+  currency: string;
+  location: string;
+  description: string;
+  isSelected?: boolean;
+  isSaved?: boolean;
+}
+
+interface ItinerarySlot {
+    period: string;
+    timeRange: string;
+    title: string;
+    description: string;
+    options: ProductOption[];
+}
 
 export default function TripDetails() {
   const [match, params] = useRoute("/trip/:id");
@@ -73,31 +105,130 @@ export default function TripDetails() {
     {
       day: 1,
       date: "Mon, Jun 12",
-      title: "Arrival & Relaxation",
-      activities: [
-        { time: "14:00", title: "Check-in at Resort", type: "lodging", icon: Hotel, description: "Ocean view suite at The Royal Palms" },
-        { time: "16:00", title: "Beach Walk", type: "activity", icon: Sun, description: "Explore the private beach area" },
-        { time: "19:00", title: "Welcome Dinner", type: "food", icon: Utensils, description: "Seafood reservation at Blue Horizon" }
+      title: "Arrival & Exploring the City",
+      description: "Arrive in Bora Bora and check into your accommodation. Start your exploration with a visit to the local town.",
+      slots: [
+        {
+            period: "Morning",
+            timeRange: "10:00 AM - 1:00 PM",
+            title: "Check-in & Settlement",
+            description: "Choose your preferred stay option based on your budget and style.",
+            options: [
+                {
+                    id: "stay-1",
+                    title: "The Royal Palms Resort",
+                    type: 'stay',
+                    image: hotel1,
+                    rating: 4.9,
+                    reviews: 1240,
+                    price: 1244,
+                    currency: '$',
+                    location: "Motu Piti Aau",
+                    description: "Luxury overwater bungalows with direct lagoon access.",
+                    isSelected: true
+                },
+                {
+                    id: "stay-2",
+                    title: "Bora Bora Pearl Beach",
+                    type: 'stay',
+                    image: hotel2,
+                    rating: 4.7,
+                    reviews: 890,
+                    price: 850,
+                    currency: '$',
+                    location: "Tevairoa",
+                    description: "Polynesian style suites with garden views.",
+                    isSaved: true
+                },
+                 {
+                    id: "stay-3",
+                    title: "Sunset Hill Lodge",
+                    type: 'stay',
+                    image: hotel3,
+                    rating: 4.5,
+                    reviews: 320,
+                    price: 450,
+                    currency: '$',
+                    location: "Vaitape",
+                    description: "Cozy apartments with panoramic lagoon views.",
+                }
+            ] as ProductOption[]
+        },
+        {
+            period: "Afternoon",
+            timeRange: "2:00 PM - 6:00 PM",
+            title: "Lagoon Discovery",
+            description: "Experience the crystal clear waters of Bora Bora.",
+            options: [
+                {
+                    id: "act-1",
+                    title: "Private Lagoon Boat Tour",
+                    type: 'activity',
+                    image: activity1,
+                    rating: 4.9,
+                    reviews: 560,
+                    price: 320,
+                    currency: '$',
+                    location: "Main Dock",
+                    description: "Exclusive boat tour with snorkeling stops.",
+                    isSaved: true
+                },
+                {
+                    id: "act-2",
+                    title: "Jet Ski Adventure",
+                    type: 'activity',
+                    image: activity2,
+                    rating: 4.8,
+                    reviews: 420,
+                    price: 180,
+                    currency: '$',
+                    location: "Matira Beach",
+                    description: "Guided jet ski tour around the island.",
+                },
+                 {
+                    id: "act-3",
+                    title: "Relax at Matira Beach",
+                    type: 'activity',
+                    image: tropicalImage,
+                    rating: 4.9,
+                    reviews: 2100,
+                    price: 0,
+                    currency: '$',
+                    location: "Matira Point",
+                    description: "Free time at the world-famous public beach.",
+                    isSelected: true
+                }
+            ] as ProductOption[]
+        }
       ]
     },
     {
       day: 2,
       date: "Tue, Jun 13",
       title: "Island Exploration",
-      activities: [
-        { time: "09:00", title: "Island Boat Tour", type: "activity", icon: Camera, description: "Full day snorkeling and island hopping tour" },
-        { time: "13:00", title: "Picnic Lunch", type: "food", icon: Utensils, description: "Provided on the boat" },
-        { time: "18:00", title: "Sunset Cocktails", type: "activity", icon: Utensils, description: "Rooftop lounge downtown" }
-      ]
-    },
-    {
-      day: 3,
-      date: "Wed, Jun 14",
-      title: "Culture & History",
-      activities: [
-        { time: "10:00", title: "Old Town Market", type: "activity", icon: MapPin, description: "Shopping for local crafts and spices" },
-        { time: "12:30", title: "Local Street Food Tour", type: "food", icon: Utensils, description: "Guided tasting of 5 local dishes" },
-        { time: "15:00", title: "Museum Visit", type: "activity", icon: Camera, description: "National History Museum" }
+      description: "Dive deep into the culture and natural beauty of the island.",
+      slots: [
+           {
+            period: "Morning",
+            timeRange: "09:00 AM - 1:00 PM",
+            title: "4x4 Island Safari",
+            description: "Explore the mountainous interior of the island.",
+            options: [
+                {
+                    id: "act-4",
+                    title: "Jeep Safari Tour",
+                    type: 'activity',
+                    image: activity1,
+                    rating: 4.7,
+                    reviews: 340,
+                    price: 120,
+                    currency: '$',
+                    location: "Hotel Pickup",
+                    description: "Visit WWII cannons and viewpoints.",
+                    isSelected: true
+                }
+            ] as ProductOption[]
+        }
       ]
     }
   ];
