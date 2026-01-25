@@ -1,11 +1,26 @@
+import { useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ConversationPanel } from '@/components/onboarding/ConversationPanel';
 import { ProfileDataPanel } from '@/components/onboarding/ProfileDataPanel';
 import { ProgressIndicator } from '@/components/onboarding/ProgressIndicator';
 import { useProfileStore } from '@/lib/store';
+import { useAuth } from '@/hooks/use-auth';
+import { useLocation } from 'wouter';
 
 export default function Onboarding() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const { currentStep } = useProfileStore();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useProfileStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/use-auth';
+import { useLocation } from 'wouter';
 import { 
   Calendar, 
   MapPin, 
@@ -73,10 +75,22 @@ interface ItinerarySlot {
 }
 
 export default function TripDetails() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const [match, params] = useRoute("/trip/:id");
   const { profile } = useProfileStore();
   const tripIndex = params?.id ? parseInt(params.id) : 0;
   const [isPlannerCollapsed, setIsPlannerCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
   
   const trip = profile.upcomingTrips ? profile.upcomingTrips[tripIndex] : null;
 

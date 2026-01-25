@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Compass, User, Map, Settings, PlusCircle, Bell, ChevronDown, LogOut, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useProfileStore } from "@/lib/store";
+import { useAuth } from "@/hooks/use-auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +16,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { profile } = useProfileStore();
+  const { user } = useAuth();
 
-  const userName = profile.name || "Alex Johnson";
+  const userName = user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}` 
+    : profile.name || "User";
   const userInitials = userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  const userEmail = profile.contactInfo?.email || "alex.johnson@example.com";
+  const userEmail = user?.email || profile.contactInfo?.email || "user@example.com";
 
   const navItems = [
     { icon: Map, label: "Dashboard", href: "/" },
@@ -64,9 +68,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="p-4 border-t border-sidebar-border">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-sidebar-accent transition-colors text-left group">
+                    <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-sidebar-accent transition-colors text-left group" data-testid="button-user-menu">
                         <Avatar className="h-9 w-9 border border-border">
-                            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                            <AvatarImage src={user?.profileImageUrl || "https://github.com/shadcn.png"} alt={userName} />
                             <AvatarFallback>{userInitials}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
@@ -99,9 +103,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         <span>Notifications</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
+                    <DropdownMenuItem className="text-destructive focus:text-destructive" asChild>
+                        <a href="/api/logout" className="cursor-pointer" data-testid="button-logout">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                        </a>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

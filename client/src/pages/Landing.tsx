@@ -30,17 +30,18 @@ export default function Landing() {
                         variant="ghost" 
                         className="font-medium flex text-muted-foreground hover:text-primary"
                         onClick={handleDemoLogin}
+                        data-testid="button-demo-login"
                      >
                         <UserCheck className="w-4 h-4 mr-2" />
                         <span className="hidden sm:inline">Load Demo Profile</span>
                         <span className="sm:hidden">Demo</span>
                      </Button>
-                    <Link href="/onboarding">
-                         <Button variant="ghost" className="font-medium hidden sm:flex">Log In</Button>
-                    </Link>
-                    <Link href="/onboarding">
-                         <Button className="rounded-full font-medium">Get Started</Button>
-                    </Link>
+                    <a href="/api/login">
+                         <Button variant="ghost" className="font-medium hidden sm:flex" data-testid="button-login">Log In</Button>
+                    </a>
+                    <a href="/api/login">
+                         <Button className="rounded-full font-medium" data-testid="button-get-started">Get Started</Button>
+                    </a>
                 </div>
             </div>
         </header>
@@ -65,13 +66,13 @@ export default function Landing() {
                             </p>
                             
                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                <Link href="/onboarding">
-                                    <Button size="lg" className="rounded-full h-14 px-8 text-lg shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
+                                <a href="/api/login">
+                                    <Button size="lg" className="rounded-full h-14 px-8 text-lg shadow-xl shadow-primary/20 hover:scale-105 transition-transform" data-testid="button-start-planning">
                                         Start Planning Free
                                         <ArrowRight className="ml-2 w-5 h-5" />
                                     </Button>
-                                </Link>
-                                <Button variant="outline" size="lg" className="rounded-full h-14 px-8 text-lg border-2 hover:bg-muted">
+                                </a>
+                                <Button variant="outline" size="lg" className="rounded-full h-14 px-8 text-lg border-2 hover:bg-muted" data-testid="button-watch-demo">
                                     <Play className="mr-2 w-4 h-4 fill-current" /> Watch Demo
                                 </Button>
                             </div>
@@ -165,11 +166,11 @@ export default function Landing() {
                              <p className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto">
                                  Join thousands of travelers who are saving time and discovering better trips with TraveLuxe.
                              </p>
-                             <Link href="/onboarding">
-                                <Button size="lg" variant="secondary" className="rounded-full h-14 px-10 text-lg shadow-lg font-semibold text-primary">
+                             <a href="/api/login">
+                                <Button size="lg" variant="secondary" className="rounded-full h-14 px-10 text-lg shadow-lg font-semibold text-primary" data-testid="button-build-profile">
                                     Build Your Profile
                                 </Button>
-                             </Link>
+                             </a>
                          </div>
                          
                          {/* Decorative circles */}

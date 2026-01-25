@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { 
   Plus, 
   Map, 
@@ -18,6 +19,7 @@ import {
   Check
 } from 'lucide-react';
 import { useProfileStore } from '@/lib/store';
+import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
 import { checkSchoolConflict } from '@/lib/school-calendar';
 import {
@@ -55,11 +57,23 @@ import { PlannerChat } from '@/components/planner/PlannerChat';
 import { Input } from '@/components/ui/input';
 
 export default function PlanTrip() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const { profile, updateSection } = useProfileStore();
   const [dismissedWarnings, setDismissedWarnings] = useState<number[]>([]);
   const [activePlannerTrip, setActivePlannerTrip] = useState<number | null>(null);
   const [editingTitleIndex, setEditingTitleIndex] = useState<number | null>(null);
   const [tempTitle, setTempTitle] = useState("");
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
 
   const hasMinors = profile.travelGroup?.members.some(m => m.isMinor);
 

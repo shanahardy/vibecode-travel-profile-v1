@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,9 +9,23 @@ import { Separator } from '@/components/ui/separator';
 import { User, Mail, Shield, Bell, CreditCard, LogOut, CheckCircle } from 'lucide-react';
 import { useProfileStore } from '@/lib/store';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/hooks/use-auth';
+import { useLocation } from 'wouter';
 
 export default function Account() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const { profile } = useProfileStore();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
   
   // Use profile name if available, otherwise mock default
   const userName = profile.name || "Alex Johnson";
@@ -48,9 +63,11 @@ export default function Account() {
                             <CreditCard className="mr-2 h-4 w-4" /> Billing & Plans
                         </Button>
                         <Separator className="my-2" />
-                        <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10">
-                            <LogOut className="mr-2 h-4 w-4" /> Sign Out
-                        </Button>
+                        <a href="/api/logout" className="w-full">
+                            <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" data-testid="button-sign-out">
+                                <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                            </Button>
+                        </a>
                     </CardContent>
                 </Card>
 

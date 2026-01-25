@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useProfileStore, TravelMember, TravelGroup, LocationInfo, BudgetPreferences, ContactInfo } from '@/lib/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -8,11 +8,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane, Wallet, Users, Heart, MapPin, Calendar, Mail, Phone, Map, Pencil, Check, X, Plus, Trash2, Mic } from 'lucide-react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function Profile() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const { profile, updateSection, updateProfile } = useProfileStore();
   const [editingSection, setEditingSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
   
   // Temporary state for edits
   const [tempContact, setTempContact] = useState<Partial<ContactInfo> & { name: string }>({ 

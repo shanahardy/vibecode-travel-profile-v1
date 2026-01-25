@@ -7,12 +7,24 @@ import { Badge } from '@/components/ui/badge';
 import tropicalImage from '@assets/generated_images/tropical_beach_vacation_paradise.png';
 import { Mic, Shield, Globe, ArrowRight as ArrowRightIcon } from 'lucide-react';
 import Landing from './Landing';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function Home() {
+  const { isAuthenticated, isLoading, user } = useAuth();
   const { profile } = useProfileStore();
   const hasProfile = !!profile.name;
   const tripCount = profile.upcomingTrips?.length || 0;
 
+  // Show landing page for unauthenticated users
+  if (isLoading) {
+    return <Landing />;
+  }
+
+  if (!isAuthenticated) {
+    return <Landing />;
+  }
+
+  // Show onboarding prompt if authenticated but no profile
   if (!hasProfile) {
     return <Landing />;
   }
