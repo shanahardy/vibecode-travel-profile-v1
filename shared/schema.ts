@@ -13,6 +13,9 @@ import {
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Export auth models (users and sessions tables)
+export * from "./models/auth";
+
 // ============================================================================
 // ENUMS
 // ============================================================================
@@ -77,11 +80,7 @@ export const itineraryPeriodEnum = pgEnum("itinerary_period", [
 // TABLES
 // ============================================================================
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
+// Note: users and sessions tables are now imported from models/auth.ts (Replit Auth)
 
 // Travel Profiles - One-to-one with users
 export const travelProfiles = pgTable("travel_profiles", {
@@ -356,10 +355,7 @@ export const slotProductOptionsRelations = relations(slotProductOptions, ({ one 
 // ZOD SCHEMAS
 // ============================================================================
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
+// Note: insertUserSchema is not needed anymore (Replit Auth handles user creation)
 
 export const insertTravelProfileSchema = createInsertSchema(travelProfiles).omit({
   id: true,
@@ -410,8 +406,7 @@ export const insertSlotProductOptionSchema = createInsertSchema(slotProductOptio
 // TYPES
 // ============================================================================
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+// Note: User and UpsertUser types are exported from models/auth.ts
 
 export type InsertTravelProfile = z.infer<typeof insertTravelProfileSchema>;
 export type TravelProfile = typeof travelProfiles.$inferSelect;
