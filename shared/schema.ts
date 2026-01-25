@@ -13,7 +13,8 @@ import {
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Export auth models (users and sessions tables)
+// Import and export auth models (users and sessions tables)
+import { users, sessions } from "./models/auth";
 export * from "./models/auth";
 
 // ============================================================================

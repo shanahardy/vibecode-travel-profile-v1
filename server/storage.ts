@@ -1,38 +1,19 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
+// Note: User authentication is now handled by Replit Auth
+// See server/replit_integrations/auth/storage.ts for user operations
 
-// modify the interface with any CRUD methods
-// you might need
+// modify the interface with any CRUD methods you might need for your app
+// (excluding user management which is handled by Replit Auth)
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // Add your app-specific storage methods here
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
   constructor() {
-    this.users = new Map();
+    // Initialize your app-specific storage here
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
-  }
+  // Add your app-specific storage methods here
 }
 
 export const storage = new MemStorage();
