@@ -1,7 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(git clone:*)",
+      "Bash(npm install:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(npm test:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run test:single:*)",
+      "Bash(npx jest:*)"
     ]
   }
 }

@@ -10,20 +10,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plane, Wallet, Users, Heart, MapPin, Calendar, Mail, Phone, Map, Pencil, Check, X, Plus, Trash2, Mic } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
+import { useProfileSync } from '@/hooks/use-profile-sync';
 
 export default function Profile() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
-  const { profile, updateSection, updateProfile } = useProfileStore();
+  const { profile, updateSection, updateProfile, isDemoMode } = useProfileStore();
   const [editingSection, setEditingSection] = useState<string | null>(null);
 
+  // Initialize profile from DB when authenticated
+  useProfileSync();
+
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !isAuthenticated && !isDemoMode) {
       setLocation('/');
     }
-  }, [isAuthenticated, isLoading, setLocation]);
+  }, [isAuthenticated, isLoading, isDemoMode, setLocation]);
 
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || (!isAuthenticated && !isDemoMode)) {
     return null;
   }
   
@@ -40,6 +44,10 @@ export default function Profile() {
   });
 
   const handleEdit = (section: string) => {
+    if (isDemoMode) {
+      alert('Editing is disabled in demo mode. Sign up to create your own profile.');
+      return;
+    }
     setEditingSection(section);
     // Reset temp state to current store value when starting edit
     if (section === 'identity') {
@@ -112,6 +120,28 @@ export default function Profile() {
   return (
     <AppLayout>
       <div className="space-y-8 pb-10 max-w-5xl mx-auto">
+        {isDemoMode && (
+          <div className="mb-6 rounded-lg border-2 border-amber-400 bg-amber-50 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Badge className="bg-amber-500 text-white hover:bg-amber-500">Demo Mode</Badge>
+                <p className="text-sm text-amber-900">
+                  You're viewing a sample profile. <a href="/api/login" className="underline font-semibold">Sign up</a> to create your own.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  localStorage.removeItem('travel-profile-demo-v4');
+                  window.location.href = '/';
+                }}
+              >
+                Exit Demo
+              </Button>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-serif font-bold">Your Travel Profile</h1>
           <div className="flex justify-between items-start">
@@ -138,7 +168,7 @@ export default function Profile() {
                         <CardDescription>Personal details and contact information</CardDescription>
                     </div>
                </div>
-               {editingSection !== 'identity' && (
+               {editingSection !== 'identity' && !isDemoMode && (
                    <Button variant="ghost" size="icon" onClick={() => handleEdit('identity')}>
                        <Pencil className="w-4 h-4" />
                    </Button>
@@ -206,7 +236,7 @@ export default function Profile() {
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Users className="w-5 h-5 text-primary" /> Travel Group
               </CardTitle>
-              {editingSection !== 'group' && (
+              {editingSection !== 'group' && !isDemoMode && (
                    <Button variant="ghost" size="icon" onClick={() => handleEdit('group')}>
                        <Pencil className="w-4 h-4" />
                    </Button>
@@ -320,7 +350,7 @@ export default function Profile() {
               <CardTitle className="flex items-center gap-2 text-lg">
                 <MapPin className="w-5 h-5 text-primary" /> Location & Hubs
               </CardTitle>
-              {editingSection !== 'location' && (
+              {editingSection !== 'location' && !isDemoMode && (
                    <Button variant="ghost" size="icon" onClick={() => handleEdit('location')}>
                        <Pencil className="w-4 h-4" />
                    </Button>
@@ -384,7 +414,7 @@ export default function Profile() {
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Wallet className="w-5 h-5 text-primary" /> Budget Priorities
               </CardTitle>
-              {editingSection !== 'budget' && (
+              {editingSection !== 'budget' && !isDemoMode && (
                    <Button variant="ghost" size="icon" onClick={() => handleEdit('budget')}>
                        <Pencil className="w-4 h-4" />
                    </Button>

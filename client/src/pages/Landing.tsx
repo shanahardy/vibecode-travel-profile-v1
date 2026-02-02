@@ -9,9 +9,14 @@ export default function Landing() {
   const { restoreDemoProfile } = useProfileStore();
 
   const handleDemoLogin = () => {
+    // CRITICAL: Write demo intent flag synchronously BEFORE any async operations
+    localStorage.setItem('travel-profile-demo-intent', 'true');
+
+    // Call restoreDemoProfile (this queues async persistence via Zustand)
     restoreDemoProfile();
-    // Force reload/navigation to dashboard
-    window.location.href = "/";
+
+    // Navigate with demo parameter as safety signal
+    window.location.href = "/?demo=true";
   };
 
   return (

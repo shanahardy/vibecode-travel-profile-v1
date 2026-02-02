@@ -7,6 +7,8 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { authStorage } from "./storage";
+import { storage } from "../../storage";
+import './types';
 
 const getOidcConfig = memoize(
   async () => {
@@ -19,6 +21,15 @@ const getOidcConfig = memoize(
 );
 
 export function getSession() {
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret) {
+    throw new Error(
+      '❌ SESSION_SECRET environment variable is required for authentication.\n' +
+      'Please set it in your Replit Secrets or .env file.\n' +
+      'Generate one with: openssl rand -hex 32'
+    );
+  }
+
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -28,7 +39,7 @@ export function getSession() {
     tableName: "sessions",
   });
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: sessionSecret,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -40,24 +51,63 @@ export function getSession() {
   });
 }
 
-function updateUserSession(
+async function updateUserSession(
+  req: any,
   user: any,
   tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
-) {
+): Promise<void> {
   user.claims = tokens.claims();
   user.access_token = tokens.access_token;
   user.refresh_token = tokens.refresh_token;
   user.expires_at = user.claims?.exp;
+
+  // Persist to session store
+  return new Promise<void>((resolve, reject) => {
+    req.session.save((err: any) => {
+      if (err) {
+        console.error('Failed to save session after token refresh:', err);
+        reject(err);
+      } else {
+        console.log('Session saved successfully');
+        resolve();
+      }
+    });
+  });
 }
 
 async function upsertUser(claims: any) {
+  const userId = claims["sub"];
+
+  // Upsert user record
   await authStorage.upsertUser({
-    id: claims["sub"],
+    id: userId,
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
   });
+
+  // Auto-create travel profile if it doesn't exist
+  const existingProfile = await storage.getProfile(userId);
+  if (!existingProfile) {
+    const firstName = claims["first_name"] || '';
+    const lastName = claims["last_name"] || '';
+    const fullName = `${firstName} ${lastName}`.trim() || 'Traveler';
+
+    await storage.upsertProfile(userId, {
+      name: fullName,
+      contactInfo: {
+        firstName: claims["first_name"] || '',
+        lastName: claims["last_name"] || '',
+        email: claims["email"] || '',
+        phone: '',
+        dateOfBirth: '',
+      },
+      budget: null,
+      travelStyle: null,
+    });
+    console.log(`✓ Auto-created travel profile for user ${userId}`);
+  }
 }
 
 export async function setupAuth(app: Express) {
@@ -68,13 +118,24 @@ export async function setupAuth(app: Express) {
 
   const config = await getOidcConfig();
 
-  const verify: VerifyFunction = async (
+  const verify: VerifyFunction = (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
+    const claims = tokens.claims();
+    const user: Express.User = {
+      claims: claims as Express.User['claims'],
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token || '',
+      expires_at: claims?.exp || 0,
+    };
+
+    // Upsert user data asynchronously (fire-and-forget)
+    upsertUser(claims).catch((err) => {
+      console.error('Failed to upsert user during authentication:', err);
+    });
+
+    // Call verified synchronously - authentication succeeds based on tokens
     verified(null, user);
   };
 
@@ -103,6 +164,9 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
+    if (req.query.returnTo) {
+      req.session.returnTo = req.query.returnTo as string;
+    }
     ensureStrategy(req.hostname);
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
@@ -112,8 +176,11 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/callback", (req, res, next) => {
     ensureStrategy(req.hostname);
+    const returnTo = req.session.returnTo || "/";
+    delete req.session.returnTo;
+
     passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
+      successReturnToOrRedirect: returnTo,
       failureRedirect: "/api/login",
     })(req, res, next);
   });
@@ -133,28 +200,43 @@ export async function setupAuth(app: Express) {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  // If no valid session, destroy and return 401
+  if (!req.isAuthenticated() || !user?.expires_at) {
+    console.log('Session destroyed: No authenticated user or missing expires_at');
+    if (req.session) {
+      return req.session.destroy(() => {
+        res.status(401).json({ message: "Unauthorized" });
+      });
+    }
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  // Check if token is still valid
   const now = Math.floor(Date.now() / 1000);
   if (now <= user.expires_at) {
     return next();
   }
 
+  // Token expired - try to refresh
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    console.log('Session destroyed: No refresh token available');
+    return req.session.destroy(() => {
+      res.status(401).json({ message: "Unauthorized" });
+    });
   }
 
   try {
+    console.log('Saving session...');
     const config = await getOidcConfig();
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
-    updateUserSession(user, tokenResponse);
+    await updateUserSession(req, user, tokenResponse);
     return next();
   } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    console.error('Token refresh failed:', error);
+    console.log('Session destroyed: Token refresh failed');
+    return req.session.destroy(() => {
+      res.status(401).json({ message: "Unauthorized" });
+    });
   }
 };
