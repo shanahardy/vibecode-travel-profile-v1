@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -10,6 +11,60 @@ import { createServer } from "http";
 import { pool } from "./db";
 import { sanitizeInputs } from "./middleware/sanitize";
 import { logEvent } from "./lib/audit";
+
+/**
+ * Validate critical environment variables at startup
+ * Logs warnings for missing or misconfigured values
+ */
+function validateEnvironmentVariables() {
+  console.log('\n=== Environment Configuration Check ===');
+
+  // Required variables
+  const required = {
+    'SESSION_SECRET': process.env.SESSION_SECRET,
+    'DATABASE_URL': process.env.DATABASE_URL,
+  };
+
+  // Optional but important variables
+  const optional = {
+    'VOICEFLOW_API_KEY': process.env.VOICEFLOW_API_KEY,
+    'VOICEFLOW_PROJECT_KEY': process.env.VOICEFLOW_PROJECT_KEY,
+    'STRIPE_SECRET_KEY': process.env.STRIPE_SECRET_KEY,
+    'OPENAI_API_KEY': process.env.OPENAI_API_KEY,
+  };
+
+  // Check required variables
+  let hasRequiredVars = true;
+  for (const [key, value] of Object.entries(required)) {
+    if (!value) {
+      console.error(`❌ MISSING REQUIRED: ${key}`);
+      hasRequiredVars = false;
+    } else {
+      console.log(`✓ ${key}: configured`);
+    }
+  }
+
+  // Check optional variables
+  for (const [key, value] of Object.entries(optional)) {
+    if (!value) {
+      console.log(`⚠️  ${key}: not set (optional)`);
+    } else if (value.includes('XXXX')) {
+      console.log(`⚠️  ${key}: PLACEHOLDER detected - replace in Replit Secrets`);
+    } else {
+      const preview = value.substring(0, 10);
+      console.log(`✓ ${key}: configured (${preview}...)`);
+    }
+  }
+
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('Source: Replit Secrets (preferred) or .env file (fallback)');
+  console.log('========================================\n');
+
+  if (!hasRequiredVars) {
+    console.error('FATAL: Missing required environment variables');
+    process.exit(1);
+  }
+}
 
 const app = express();
 const httpServer = createServer(app);
@@ -172,6 +227,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Validate environment variables at startup
+  validateEnvironmentVariables();
+
   try {
     await registerRoutes(httpServer, app);
   } catch (error) {

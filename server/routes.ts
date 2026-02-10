@@ -5,6 +5,7 @@ import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { registerPaymentRoutes } from "./routes/paymentRoutes";
 import { registerWebhookRoutes } from "./routes/webhookRoutes";
 import { registerChatKitRoutes } from "./routes/chatKitRoutes";
+import { registerVoiceflowRoutes } from "./routes/voiceflowRoutes";
 import { registerProfileRoutes } from "./routes/profileRoutes";
 
 export async function registerRoutes(
@@ -47,6 +48,15 @@ export async function registerRoutes(
     console.log('✓ ChatKit routes registered');
   } catch (error) {
     console.error('✗ Failed to register ChatKit routes:', error);
+    throw error;
+  }
+
+  try {
+    // Register Voiceflow routes
+    await registerVoiceflowRoutes(app);
+    console.log('✓ Voiceflow routes registered');
+  } catch (error) {
+    console.error('✗ Failed to register Voiceflow routes:', error);
     throw error;
   }
 

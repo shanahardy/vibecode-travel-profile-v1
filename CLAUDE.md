@@ -171,7 +171,67 @@ if (trip.profileId !== userProfile.id) {
 - `customer.subscription.created/updated/deleted` - Updates subscription status
 - Uses raw body parsing for signature verification
 
+### Voiceflow Integration
+
+**Routes** (`server/routes/voiceflowRoutes.ts`):
+- POST `/api/voiceflow/session` - Initialize conversation session
+- POST `/api/voiceflow/interact` - Send message to Voiceflow
+- GET `/api/voiceflow/state` - Get conversation state
+- DELETE `/api/voiceflow/session` - End conversation session
+- GET `/api/voiceflow/status` - Health check with detailed config status
+
+**Environment Variables:**
+- `VOICEFLOW_API_KEY` - Dialog Manager API key (starts with VF.DM.)
+- `VOICEFLOW_PROJECT_KEY` - Project ID from Voiceflow dashboard
+- `VOICEFLOW_VERSION` - Default: "production"
+- `VOICEFLOW_RUNTIME_URL` - Default: https://general-runtime.voiceflow.com
+
+**Setup Instructions:**
+1. Log in to [Voiceflow Dashboard](https://www.voiceflow.com/dashboard)
+2. Navigate to your project → Settings → API Keys
+3. Copy the **Dialog Manager API key** (starts with VF.DM.)
+4. In Replit, go to Secrets tab (🔒 icon in left sidebar)
+5. Add `VOICEFLOW_API_KEY` with your API key
+6. Add `VOICEFLOW_PROJECT_KEY` with your project ID
+7. Restart the server
+8. Check startup logs for "Environment Configuration Check"
+
+**Validation:**
+- API key must start with `VF.DM.`
+- API key must be at least 20 characters
+- Placeholder values (containing 'XXXX') are detected and rejected
+- Startup logs show configuration status with masked key preview
+
 ### Environment Variables
+
+#### Environment Variable Loading
+
+**Loading Priority (Replit Environment):**
+1. **Replit Secrets** (highest priority) - Production values
+2. **`.env` file** (fallback) - Development defaults
+3. **System environment** - Replit-provided variables (PORT, NODE_ENV)
+
+**Setup Process:**
+
+The application uses the `dotenv` package to load environment variables from `.env` file during development. In production (Replit), Replit Secrets are automatically injected into `process.env`.
+
+**Configuration File**: `.env`
+- Contains development defaults and commented examples
+- Should NOT contain real API keys (use Replit Secrets instead)
+- Committed to git with placeholder values for documentation
+
+**Loading Mechanism**: `server/index.ts` line 1 imports `dotenv/config` which:
+- Automatically loads `.env` file when the server starts
+- Does not override existing `process.env` values (Replit Secrets have priority)
+- Provides fallback values for local development
+
+**Verifying Environment Variables:**
+- Run `npm run dev` and check startup logs
+- Look for "Environment Configuration Check" section
+- Verify all required variables show ✓ configured
+- Check for ⚠️ warnings about missing optional variables
+
+#### Required Variables
 
 **Required:**
 - `DATABASE_URL` - PostgreSQL connection string
@@ -293,3 +353,4 @@ client/
 1. Always run unit tests after completing your work to verify current and past
 features are still working.
 2. Always write new unit tests after prior tests have been completed.
+3. Always use Secrets file for api keys to maintain security, do not use .env file for any api keys.

@@ -336,3 +336,19 @@ jest.mock('connect-pg-simple', () => {
     return jest.fn().mockImplementation(() => ({}));
   });
 });
+
+// Mock HTML5 Audio API
+global.Audio = jest.fn().mockImplementation((src) => {
+  return {
+    src,
+    play: jest.fn(() => Promise.resolve()),
+    pause: jest.fn(),
+    load: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    currentTime: 0,
+    duration: 0,
+    paused: true,
+    volume: 1,
+  };
+});

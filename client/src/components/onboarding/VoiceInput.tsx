@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Volume2, VolumeX, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import type { Message } from '@/lib/store';
 
 interface VoiceInputProps {
   onTranscript: (text: string) => void;
   onSend: () => void;
-  lastMessage?: string;
+  lastMessage?: Message;
   isProcessing: boolean;
 }
 
@@ -16,6 +17,7 @@ export function VoiceInput({ onTranscript, onSend, lastMessage, isProcessing }: 
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<any>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -81,19 +83,33 @@ export function VoiceInput({ onTranscript, onSend, lastMessage, isProcessing }: 
     }
   }, [isListening]);
 
-  // Speech Synthesis
+  // Voiceflow TTS - play audio responses
   useEffect(() => {
       if (!lastMessage || isMuted || isListening) return;
-      
-      // Strip markdown/html for speech
-      const textToSpeak = lastMessage.replace(/[*_#]/g, '');
-      
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utterance);
-      
+
+      // Cancel currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      // Play Voiceflow TTS if available
+      if (lastMessage.ttsUrl) {
+        try {
+          audioRef.current = new Audio(lastMessage.ttsUrl);
+          audioRef.current.play().catch(error => {
+            console.warn('[TTS] Failed to play audio:', error);
+          });
+        } catch (error) {
+          console.warn('[TTS] Failed to create audio element:', error);
+        }
+      }
+
       return () => {
-          window.speechSynthesis.cancel();
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
       }
   }, [lastMessage, isMuted, isListening]); // Don't speak while listening
 
@@ -180,7 +196,10 @@ export function VoiceInput({ onTranscript, onSend, lastMessage, isProcessing }: 
                 className="text-xs text-muted-foreground hover:text-foreground"
                 onClick={() => {
                     setIsMuted(!isMuted);
-                    window.speechSynthesis.cancel();
+                    if (audioRef.current) {
+                      audioRef.current.pause();
+                      audioRef.current = null;
+                    }
                 }}
             >
                 {isMuted ? (

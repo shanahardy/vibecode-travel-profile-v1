@@ -223,3 +223,94 @@ export function createMockGroupMember(overrides: Partial<TravelGroupMember> = {}
     createdAt: overrides.createdAt || new Date('2025-01-01'),
   };
 }
+
+/**
+ * Mock Voiceflow Session
+ */
+export const mockVoiceflowSession = {
+  userId: 'test-replit-user-id',
+  voiceflowUserId: 'replit_test-replit-user-id',
+  createdAt: Date.now(),
+};
+
+/**
+ * Mock Voiceflow Traces (sample conversation responses)
+ */
+export const mockVoiceflowTraces = {
+  textTrace: {
+    type: 'text',
+    payload: {
+      message: 'Hello! I can help you plan your trip.',
+    },
+  },
+  speakTrace: {
+    type: 'speak',
+    payload: {
+      message: 'What is your name?',
+      src: 'https://voiceflow-tts.example.com/audio/abc123.mp3',
+    },
+  },
+  profileDataTrace: {
+    type: 'profile_data',
+    payload: {
+      data: {
+        contactInfo: {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+        },
+      },
+    },
+  },
+  endTrace: {
+    type: 'end',
+    payload: {},
+  },
+};
+
+/**
+ * Mock Voiceflow API Response (successful launch)
+ */
+export const mockVoiceflowLaunchResponse = [
+  mockVoiceflowTraces.textTrace,
+  mockVoiceflowTraces.speakTrace,
+];
+
+/**
+ * Mock Voiceflow API Response (with profile data)
+ */
+export const mockVoiceflowInteractResponse = [
+  {
+    type: 'text',
+    payload: {
+      message: 'Thanks for sharing that information!',
+    },
+  },
+  mockVoiceflowTraces.profileDataTrace,
+];
+
+/**
+ * Mock Voiceflow State
+ */
+export const mockVoiceflowState = {
+  stack: [
+    {
+      nodeId: 'node-1',
+      type: 'block',
+    },
+  ],
+  storage: {},
+  variables: {
+    userName: 'John',
+  },
+};
+
+/**
+ * Create mock Voiceflow session with overrides
+ */
+export function createMockVoiceflowSession(overrides = {}) {
+  return {
+    ...mockVoiceflowSession,
+    ...overrides,
+  };
+}

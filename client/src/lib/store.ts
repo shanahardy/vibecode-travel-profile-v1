@@ -90,6 +90,7 @@ export interface Message {
   content: string;
   timestamp: number;
   type?: 'text' | 'confirmation' | 'followup' | 'completion';
+  ttsUrl?: string;
 }
 
 interface ProfileState {
@@ -100,6 +101,9 @@ interface ProfileState {
   // Onboarding State
   currentStep: number;
   isAwaitingConfirmation: boolean;
+
+  // Voiceflow State
+  voiceflowSessionId?: string;
 
   // Storage Mode
   isDemoMode: boolean;
@@ -112,6 +116,7 @@ interface ProfileState {
   setLoading: (loading: boolean) => void;
   setStep: (step: number) => void;
   setAwaitingConfirmation: (awaiting: boolean) => void;
+  setVoiceflowSessionId: (sessionId: string) => void;
   resetConversation: () => void;
   restoreDemoProfile: () => void;
   initializeAuthenticatedProfile: (userId: string) => Promise<void>;
@@ -147,6 +152,7 @@ export const useProfileStore = create<ProfileState>()(
       isLoading: false,
       currentStep: 1,
       isAwaitingConfirmation: false,
+      voiceflowSessionId: undefined,
       isDemoMode: false,
       isInitialized: false,
 
@@ -187,12 +193,14 @@ export const useProfileStore = create<ProfileState>()(
       setLoading: (loading) => set({ isLoading: loading }),
       setStep: (step) => set({ currentStep: step }),
       setAwaitingConfirmation: (awaiting) => set({ isAwaitingConfirmation: awaiting }),
+      setVoiceflowSessionId: (sessionId) => set({ voiceflowSessionId: sessionId }),
 
       resetConversation: () =>
         set({
           messages: [],
           currentStep: 0,
           isAwaitingConfirmation: false,
+          voiceflowSessionId: undefined,
           profile: getEmptyProfile(),
         }),
 
